@@ -5,6 +5,7 @@ package service.broadcast;
 import communication.CommunicationException;
 import communication.Message;
 import communication.SynchronizedBuffer;
+import java.util.ArrayList;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
@@ -19,6 +20,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     protected IIdentification idService;
     protected BasicBroadcastService _basicBroadcaster;
     protected ReliabilityManager _reliabilityManager;
+    protected ArrayList<SeqMessage> _history;
 
     /**
      * Buffer containing the filtered received messages.
@@ -30,6 +32,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     {
         _basicBroadcaster = new BasicBroadcastService();
         _reliableBuffer = new SynchronizedBuffer();
+        _history = new ArrayList();
     }
 
     /**
@@ -46,7 +49,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
         
         serviceBuffer = dispatcher.associateService(myType);
         
-        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer, _reliableBuffer);
+        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer, _reliableBuffer, _history);
         _reliabilityManager.start();
     }
 
@@ -60,7 +63,14 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        _basicBroadcaster.broadcast(new SeqMessage(null, data, MessageType.RELIABLE_BROADCAST));
+        SeqMessage mess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
+
+        synchronized(_history)
+        {
+            _history.add(mess);
+        }
+
+        _basicBroadcaster.broadcast(mess);
     }
 
     @Override

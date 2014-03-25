@@ -9,7 +9,8 @@ import java.util.HashMap;
 /**
  *
  */
-public class MessageDispatcher {
+public class MessageDispatcher
+{
 
     /**
      * This hash map associates a buffer to each type of message
@@ -21,7 +22,8 @@ public class MessageDispatcher {
      * @param type the type of the message
      * @return the buffer associated with this message type
      */
-    public SynchronizedBuffer<Message> associateService(MessageType type) {
+    public SynchronizedBuffer<Message> associateService(MessageType type)
+    {
         SynchronizedBuffer<Message> buffer = new SynchronizedBuffer<Message>();
         serviceMap.put(type, buffer);
         return buffer;
@@ -31,17 +33,22 @@ public class MessageDispatcher {
      * Depending on the type of the message, put this message in the associated buffer
      * @param msg the message to dispatch to the associated buffer
      */
-    public void newEvent(TypedMessage msg) {
+    public void newEvent(TypedMessage msg)
+    {
         SynchronizedBuffer<Message> buffer = serviceMap.get(msg.getType());
-        if (buffer==null) {
+
+        if (buffer==null)
+        {
             System.err.println("[ERROR] No service associated with "+msg.getType()+" messages");
             System.err.println("Unable to deliver : "+msg);
             return;
         }
+
         buffer.addElement(msg.untypeMessage());
     }
 
-    public MessageDispatcher() {
+    public MessageDispatcher()
+    {
         serviceMap = new HashMap<MessageType, SynchronizedBuffer>();
     }
 

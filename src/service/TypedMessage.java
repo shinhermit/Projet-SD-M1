@@ -8,7 +8,8 @@ import communication.ProcessIdentifier;
 /**
  * A typed message is a message with its associated type of service
  */
-public class TypedMessage extends Message {
+public class TypedMessage extends Message
+{
 
     /**
      * Type of the service
@@ -18,21 +19,24 @@ public class TypedMessage extends Message {
     /**
      * @return the type of the service
      */
-    public MessageType getType() {
+    public MessageType getType()
+    {
         return type;
     }
 
     /**
      * @param type the type of the service
      */
-    public void setType(MessageType type) {
+    public void setType(MessageType type)
+    {
         this.type = type;
     }
 
     /**
      * @return the message embedded in the typed message
      */
-    public Message untypeMessage() {
+    public Message untypeMessage()
+    {
         return new Message(this.processId, this.data);
     }
 
@@ -42,7 +46,8 @@ public class TypedMessage extends Message {
      * @param data data the data of the message
      * @param type the type of the service
      */
-    public TypedMessage(ProcessIdentifier processId, Object data, MessageType type) {
+    public TypedMessage(ProcessIdentifier processId, Object data, MessageType type)
+    {
         super(processId, data);
         this.type = type;
     }

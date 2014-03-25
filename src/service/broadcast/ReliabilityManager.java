@@ -23,12 +23,14 @@ import service.SeqMessage;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
         
-        public ReliabilityManager(BasicBroadcastService basicBroadcaster, SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer)
+        public ReliabilityManager(BasicBroadcastService basicBroadcaster,
+                SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer,
+                ArrayList<SeqMessage> history)
         {
-            _history = new ArrayList();
             _serviceBuffer = serviceBuffer;
             _reliableBuffer = reliableBuffer;
             _basicBroadcaster = basicBroadcaster;
+            _history = history;
         }
         
         public SeqMessage fetchMessage()
@@ -46,21 +48,26 @@ import service.SeqMessage;
         @Override
         public void run()
         {
+            boolean unknown;
+            
             while(true)
             {
                 SeqMessage mess = fetchMessage();
                 
-                if(!_history.contains(mess))
+                synchronized(_history)
                 {
-                    _history.add(mess);
-                    
+                    unknown = !_history.contains(mess);
+                    if(unknown)
+                        _history.add(mess);
+                }
+
+                if(unknown)
+                {
                     try
                     {
                         _basicBroadcaster.broadcast(mess);
                     
-                        _reliableBuffer.addElement(mess.untypeMessage());
-
-                        //Thread.sleep(100);
+                        _reliableBuffer.addElement(mess.toMessage());
                     }
                     
                     catch(Exception e)

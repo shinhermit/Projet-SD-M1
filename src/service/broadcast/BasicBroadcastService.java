@@ -47,11 +47,6 @@ public class BasicBroadcastService extends Service implements IBroadcast
                 commElt.crashProcess();
                 
                 mess.setProcessId(id);
-                if(mess instanceof SeqMessage)
-                {
-                    System.err.println("BasicBroadCAstService.broadcast: mess is really of type SeqMessage");
-                    //mess = (SeqMessage)mess;
-                }
                 commElt.sendMessage(mess);
             }
             catch (CommunicationException e)
@@ -76,7 +71,7 @@ public class BasicBroadcastService extends Service implements IBroadcast
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        this.broadcast(new TypedMessage(null, data, MessageType.BASIC_BROADCAST));
+        this.broadcast(new TypedMessage(this.idService.getMyIdentifier(), data, MessageType.BASIC_BROADCAST));
      }
 
     @Override

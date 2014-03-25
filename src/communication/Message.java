@@ -25,14 +25,16 @@ public class Message implements java.io.Serializable
     /**
      * @return the process identifier embedded in the message
      */
-    public ProcessIdentifier getProcessId() {
+    public ProcessIdentifier getProcessId()
+    {
         return processId;
     }
 
     /**
      * @param processId the process identifier to set
      */
-    public void setProcessId(ProcessIdentifier processId) {
+    public void setProcessId(ProcessIdentifier processId)
+    {
         this.processId = processId;
     }
 
@@ -47,7 +49,8 @@ public class Message implements java.io.Serializable
     /**
      * @param data the data to set
      */
-    public void setData(Object data) {
+    public void setData(Object data)
+    {
         this.data = data;
     }
 
@@ -79,7 +82,7 @@ public class Message implements java.io.Serializable
             {
                 Message messOther = (Message)other;
                 
-                eq = (this.processId == messOther.processId && data.hashCode() == messOther.data.hashCode());
+                eq = (data.hashCode() == messOther.data.hashCode());
             }
         }
         
@@ -88,7 +91,7 @@ public class Message implements java.io.Serializable
     
     public String hashString()
     {
-        return String.valueOf(this.processId)+this.data.toString();
+        return this.data.toString();
     }
     
     @Override

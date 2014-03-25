@@ -42,8 +42,6 @@ public class TCPElement {
 
         // send the data
         try {
-            System.err.println("TCPElement.sendData: data is of type "+data.getClass().getName());
-            System.err.println("TCPElement.sendData: data istanceof SeqMessage is "+(data instanceof service.SeqMessage));
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
             output.writeObject(data);
         } catch (Exception e) {

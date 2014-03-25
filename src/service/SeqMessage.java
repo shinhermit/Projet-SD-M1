@@ -15,7 +15,8 @@ import communication.ProcessIdentifier;
  */
 public class SeqMessage extends TypedMessage
 {
-    private long _sequenceNum;
+    private final long _sequenceNum;
+    private final ProcessIdentifier _creatorId;
 
     protected static long CurrentNumber;
     static
@@ -28,17 +29,29 @@ public class SeqMessage extends TypedMessage
         super(processId, data, type);
         
         this._sequenceNum = CurrentNumber;
+        ++CurrentNumber;
+        
+        this._creatorId = processId;
     }
     
-    public long getSequenceNumber(long seqNum)
+    public String getSequenceNumber()
     {
-        return this._sequenceNum;
+        return this._creatorId.toString()+"["+String.valueOf(this._sequenceNum)+"]";
     }
     
-    public TypedMessage unseqMessage()
+    public TypedMessage toTypedMessage()
     {
         return new TypedMessage(this.processId, this.data, this.type);
     }
+    
+    public Message toMessage()
+    {
+        return new Message(this.processId, this.data);
+    }
+    
+    @Override
+    public Message untypeMessage()
+    {return this;}
     
     @Override
     public boolean equals(Object other)
@@ -57,7 +70,7 @@ public class SeqMessage extends TypedMessage
             {
                 SeqMessage messOther = (SeqMessage)other;
                 
-                eq = (super.equals(messOther) && this._sequenceNum == messOther._sequenceNum);
+                eq = (super.equals(messOther) && this.getSequenceNumber().equals(messOther.getSequenceNumber()));
             }
         }
         
@@ -67,7 +80,7 @@ public class SeqMessage extends TypedMessage
     @Override
     public String hashString()
     {
-        return super.hashString() + String.valueOf(this._sequenceNum);
+        return super.hashString() + getSequenceNumber();
     }
     
     @Override
@@ -79,6 +92,6 @@ public class SeqMessage extends TypedMessage
     @Override
     public String toString()
     {
-        return "[ " + processId + ", seq:" + this._sequenceNum + ", " + Message.messageTypeToString(this.type)+" ] -> " + data;
+        return "[ " + processId + ", seq:" + this.getSequenceNumber() + ", " + Message.messageTypeToString(this.type)+" ] -> " + data;
     }
 }
