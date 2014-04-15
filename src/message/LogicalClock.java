@@ -22,6 +22,21 @@ public class LogicalClock
         _clock = new HashMap();
     }
     
+    public void addProcess(ProcessIdentifier process)
+    {
+        _clock.put(process, 0);
+    }
+    
+    public void addProcess(ProcessIdentifier process, int initialCounter)
+    {
+        _clock.put(process, initialCounter);
+    }
+    
+    public int size()
+    {
+        return _clock.size();
+    }
+    
     public void newEvent(ProcessIdentifier process)
     {
         Integer nb = _clock.get(process);

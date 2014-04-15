@@ -45,6 +45,16 @@ public class CausalityManager extends Thread
         
         LogicalClock messClock = stampMess.getStamp();
         
+        if(_localClock.size() != messClock.size())
+        {
+            throw new IllegalStateException("CausalityManager.checkCausality: the stamps don't have the same size");
+        }
+        
+        for(int i=0; i < messClock.size(); ++i)
+        {
+            
+        }
+        
         return ontime;
     }
     
