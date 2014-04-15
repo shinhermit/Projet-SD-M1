@@ -7,6 +7,7 @@
 package message;
 
 import communication.ProcessIdentifier;
+import java.util.HashMap;
 
 /**
  *
@@ -14,10 +15,47 @@ import communication.ProcessIdentifier;
  */
 public class DelayedMessage extends Message
 {
-
+    private HashMap<ProcessIdentifier, Integer> _waitingList;
+            
     public DelayedMessage(ProcessIdentifier processId, Object data)
     {
         super(processId, data);
+        
+        _waitingList = new HashMap();
     }
     
+    public void setWaitingCounter(ProcessIdentifier processId, int counter)
+    {
+        if(counter > 0)
+        {
+            _waitingList.put(processId, counter);
+        }
+    }
+    
+    public Integer getwaitingCounter(ProcessIdentifier processId)
+    {
+        return _waitingList.get(processId);
+    }
+    
+    public Integer newEvent(ProcessIdentifier processId)
+    {
+        Integer counter = null;
+        
+        if(_waitingList.containsKey(processId))
+        {
+            counter = _waitingList.get(processId) - 1;
+            
+            if(counter == 0)
+            {
+                _waitingList.remove(processId);
+            }
+            
+            else
+            {
+                _waitingList.put(processId, counter);
+            }
+        }
+        
+        return counter;
+    }
 }
