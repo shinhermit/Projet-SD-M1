@@ -50,10 +50,6 @@ public class SeqMessage extends TypedMessage
     }
     
     @Override
-    public Message untypeMessage()
-    {return this;}
-    
-    @Override
     public boolean equals(Object other)
     {
         boolean eq = false;

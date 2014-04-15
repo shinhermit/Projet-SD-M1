@@ -9,7 +9,9 @@ package service.broadcast;
 import communication.Message;
 import communication.SynchronizedBuffer;
 import java.util.ArrayList;
+import service.MessageType;
 import service.SeqMessage;
+import service.TypedMessage;
 
 /**
  *
@@ -36,13 +38,14 @@ import service.SeqMessage;
         public SeqMessage fetchMessage()
         {
             Message mess = _serviceBuffer.removeElement(true);
+            Object data = mess.getData();
             
-            if(! (mess instanceof SeqMessage) )
+            if(! (data instanceof SeqMessage) )
             {
                 throw new IllegalStateException("ReliabilityManager.fetchMessage: messages in reliable mode should be of type SeqMessage.\n\t found "+mess.getClass().getName());
             }
             
-            return (SeqMessage)mess;
+            return (SeqMessage)data;
         }
 
         @Override
@@ -52,22 +55,22 @@ import service.SeqMessage;
             
             while(true)
             {
-                SeqMessage mess = fetchMessage();
+                SeqMessage seqMess = fetchMessage();
                 
                 synchronized(_history)
                 {
-                    unknown = !_history.contains(mess);
+                    unknown = !_history.contains(seqMess);
                     if(unknown)
-                        _history.add(mess);
+                        _history.add(seqMess);
                 }
 
                 if(unknown)
                 {
                     try
                     {
-                        _basicBroadcaster.broadcast(mess);
+                        _basicBroadcaster.broadcast(new TypedMessage(seqMess.getProcessId(), seqMess, MessageType.RELIABLE_BROADCAST));
                     
-                        _reliableBuffer.addElement(mess.toMessage());
+                        _reliableBuffer.addElement(seqMess.toMessage());
                     }
                     
                     catch(Exception e)

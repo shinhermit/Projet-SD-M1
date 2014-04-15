@@ -13,6 +13,7 @@ import service.MessageDispatcher;
 import service.MessageType;
 import service.SeqMessage;
 import service.Service;
+import service.TypedMessage;
 
 public class ReliableBroadcastService  extends Service implements IBroadcast
 {
@@ -64,11 +65,14 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        SeqMessage mess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
+        SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
+        
+        //Encapsulate SeqMessage into a TypedMessage
+        TypedMessage mess = new TypedMessage(this.idService.getMyIdentifier(), seqMess, MessageType.RELIABLE_BROADCAST);
 
         synchronized(_history)
         {
-            _history.add(mess);
+            _history.add(seqMess);
         }
 
         _basicBroadcaster.broadcast(mess);
