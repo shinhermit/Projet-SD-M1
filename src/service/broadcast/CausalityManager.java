@@ -6,9 +6,13 @@
 
 package service.broadcast;
 
+import communication.ProcessIdentifier;
 import communication.SynchronizedBuffer;
+import java.util.ArrayList;
+import message.DelayedMessage;
 import message.LogicalClock;
 import message.Message;
+import message.SeqMessage;
 import message.StampedMessage;
 
 /**
@@ -18,12 +22,24 @@ import message.StampedMessage;
 public class CausalityManager extends Thread
 {
     protected SynchronizedBuffer<Message> _serviceBuffer;
-    protected SynchronizedBuffer<StampedMessage> _causalBuffer;
+    protected SynchronizedBuffer<Message> _causalBuffer;
+    protected ArrayList<DelayedMessage> _delayedMessages;
     protected LogicalClock _localClock;
+    protected ProcessIdentifier _myId;
     
-    public CausalityManager()
+    protected boolean _isOn;
+    
+    public CausalityManager(ProcessIdentifier myId, LogicalClock localClock,
+            SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> causalBuffer)
     {
+        _delayedMessages = new ArrayList();
         
+        _serviceBuffer = serviceBuffer;
+        _causalBuffer = causalBuffer;
+        _localClock = localClock;
+        _myId = myId;
+        
+        _isOn = true;
     }
 
     public StampedMessage fetchMessage()
@@ -33,15 +49,16 @@ public class CausalityManager extends Thread
 
         if(! (data instanceof StampedMessage) )
         {
-            throw new IllegalStateException("CausalityManager.fetchMessage: messages in reliable mode should be of type StampedMessage.\n\t found "+mess.getClass().getName());
+            throw new IllegalStateException("CausalityManager.fetchMessage: messages in causal mode should be of type StampedMessage.\n\t found "+data.getClass().getName());
         }
 
         return (StampedMessage)data;
     }
     
-    public boolean checkCausality(StampedMessage stampMess)
+    public DelayedMessage checkCausality(StampedMessage stampMess)
     {
-        boolean ontime = true;
+        boolean first = true;
+        DelayedMessage delayedMess = null;
         
         LogicalClock messClock = stampMess.getStamp();
         
@@ -50,26 +67,78 @@ public class CausalityManager extends Thread
             throw new IllegalStateException("CausalityManager.checkCausality: the stamps don't have the same size");
         }
         
-        for(int i=0; i < messClock.size(); ++i)
+        for(ProcessIdentifier processId : messClock.getAllProcessId())
         {
-            
+            if(processId != _myId)
+            {
+                int nbToWait = messClock.getEventCounter(processId) - _localClock.getEventCounter(processId);
+
+                if(nbToWait > 0)
+                {
+                    if(first)
+                    {
+                        delayedMess = new DelayedMessage(stampMess);
+                        first = false;
+                    }
+                    
+                    delayedMess.setWaitingCounter(processId, nbToWait);
+                }
+            }
         }
         
-        return ontime;
+        return delayedMess;
+    }
+    
+    public void updateWaitingList(ProcessIdentifier processId)
+    {
+        for(DelayedMessage delayedMess : _delayedMessages)
+        {
+            delayedMess.newEvent(processId);
+            
+            if(delayedMess.isReady())
+            {
+                //Add id back to serviceBuffer, so it will be by this method again
+                _serviceBuffer.addElement(delayedMess.getStampesMessage());
+                _delayedMessages.remove(delayedMess); // Is it safe to continue iterating the list?
+            }
+        }
+    }
+    
+    public void quit()
+    {
+        _isOn = false;
     }
     
     @Override
     public void run()
     {
-        boolean ontime;
+        DelayedMessage delayedMess;
         
-        while(true)
+        while(_isOn)
         {
             StampedMessage stampMess = fetchMessage();
             
-            _localClock.newEvent(stampMess.getProcessId());
+            _localClock.newEvent(stampMess.getProcessId()); // Should this be done after delivery?
             
-            ontime = false;
+            delayedMess = this.checkCausality(stampMess);
+            
+            if(delayedMess != null)
+            {
+                _delayedMessages.add(delayedMess);
+            }
+            
+            else
+            {
+                Object data = stampMess.getData();
+                
+                if(! (data instanceof SeqMessage) )
+                {
+                    throw new IllegalStateException("CausalityManager.run: messages inside StampedMessage should be SeqMessage.\n\t found "+data.getClass().getName());
+                }
+                
+                _causalBuffer.addElement((SeqMessage)data);
+                this.updateWaitingList(stampMess.getProcessId());
+            }
         }
     }
 }

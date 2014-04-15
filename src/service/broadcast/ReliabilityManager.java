@@ -24,6 +24,7 @@ import message.TypedMessage;
         protected SynchronizedBuffer<Message> _reliableBuffer;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
+        protected boolean _isOn;
         
         public ReliabilityManager(BasicBroadcastService basicBroadcaster,
                 SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer,
@@ -33,6 +34,8 @@ import message.TypedMessage;
             _reliableBuffer = reliableBuffer;
             _basicBroadcaster = basicBroadcaster;
             _history = history;
+            
+            _isOn = true;
         }
         
         public SeqMessage fetchMessage()
@@ -42,10 +45,15 @@ import message.TypedMessage;
             
             if(! (data instanceof SeqMessage) )
             {
-                throw new IllegalStateException("ReliabilityManager.fetchMessage: messages in reliable mode should be of type SeqMessage.\n\t found "+mess.getClass().getName());
+                throw new IllegalStateException("ReliabilityManager.fetchMessage: messages in reliable mode should be of type SeqMessage.\n\t found "+data.getClass().getName());
             }
             
             return (SeqMessage)data;
+        }
+        
+        public void quit()
+        {
+            _isOn = false;
         }
 
         @Override
@@ -53,7 +61,7 @@ import message.TypedMessage;
         {
             boolean unknown;
             
-            while(true)
+            while(_isOn)
             {
                 SeqMessage seqMess = fetchMessage();
                 

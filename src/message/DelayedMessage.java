@@ -13,14 +13,14 @@ import java.util.HashMap;
  *
  * @author josuah
  */
-public class DelayedMessage extends Message
+public class DelayedMessage
 {
     private HashMap<ProcessIdentifier, Integer> _waitingList;
+    private StampedMessage _mess;
             
-    public DelayedMessage(ProcessIdentifier processId, Object data)
+    public DelayedMessage(StampedMessage mess)
     {
-        super(processId, data);
-        
+        _mess = mess;
         _waitingList = new HashMap();
     }
     
@@ -35,6 +35,11 @@ public class DelayedMessage extends Message
     public Integer getwaitingCounter(ProcessIdentifier processId)
     {
         return _waitingList.get(processId);
+    }
+    
+    public boolean isReady()
+    {
+        return _waitingList.isEmpty();
     }
     
     public Integer newEvent(ProcessIdentifier processId)
@@ -57,5 +62,10 @@ public class DelayedMessage extends Message
         }
         
         return counter;
+    }
+    
+    public StampedMessage getStampesMessage()
+    {
+        return _mess;
     }
 }
