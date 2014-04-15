@@ -2,20 +2,19 @@
 
 package service;
 
-import message.MessageType;
-import message.TypedMessage;
-import java.util.HashMap;
-
-import service.broadcast.ReliableBroadcastService;
-
-import service.id.IdentificationService;
 import communication.CommunicationElement;
 import communication.CommunicationException;
 import communication.ReliabilitySetting;
 import communication.ReliableCommElt;
 import communication.UnreliableCommElt;
+import java.util.HashMap;
+import message.MessageType;
+import message.TypedMessage;
 import service.broadcast.BasicBroadcastService;
 import service.broadcast.CausalReliableBroadcastService;
+import service.broadcast.ReliableBroadcastService;
+import service.broadcast.TotalAtomicBroadcastService;
+import service.id.IdentificationService;
 
 /** 
  * Access point to the middleware and associated services.
@@ -133,6 +132,10 @@ public class DistributedServicesMiddleware implements IDistributedServices
         broadcaster = _services.get(ServiceSet.CausalReliableBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.CAUSAL_RELIABLE_BROADCAST);
         ((IBroadcast)broadcaster).setIdentificationService(idService);
+        
+        broadcaster = _services.get(ServiceSet.TotalAtomic);
+        broadcaster.initialize(dispatcher, commElt, MessageType.TOTAL_ATOMIC_BROADCAST);
+        ((IBroadcast)broadcaster).setIdentificationService(idService);
     }
 
     public DistributedServicesMiddleware()
@@ -146,6 +149,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
         _services.put(ServiceSet.BasicBroadcast, new BasicBroadcastService());
         _services.put(ServiceSet.ReliableBroadcast, new ReliableBroadcastService());
         _services.put(ServiceSet.CausalReliableBroadcast, new CausalReliableBroadcastService());
+        _services.put(ServiceSet.TotalAtomic, new TotalAtomicBroadcastService());
     }
 
     /**
