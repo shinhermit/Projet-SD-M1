@@ -14,11 +14,17 @@ import communication.ProcessIdentifier;
  */
 public class TotalAtomicMessage extends Message{
     private TotalAtomicType _type;
+    private ProcessIdentifier _processIdSender;
+    private ProcessIdentifier _processIdReceiver;
     
-    public TotalAtomicMessage (ProcessIdentifier processId, Object data,
+    public TotalAtomicMessage (ProcessIdentifier processIdSender, 
+            ProcessIdentifier processIdReciever,
+            Object data,
             TotalAtomicType type) {
-        super(processId, data);
-        this._type= type;
+        super(processIdSender, data);
+        _type= type;
+        _processIdSender = processId;
+        _processIdReceiver = processIdReciever; 
     }
     
     public TotalAtomicType getType () {
@@ -36,7 +42,9 @@ public class TotalAtomicMessage extends Message{
             else {
                 TotalAtomicMessage otherMessage = (TotalAtomicMessage) other;
                 eq = (super.equals(other)) && 
-                        (this.getType() == otherMessage.getType());
+                        (getType() == otherMessage.getType())
+                        && (getProcessIdSender() == otherMessage.getProcessIdSender())
+                        && (getProcessIdReceiver() == otherMessage.getProcessIdReceiver());
             }
         }
         return eq;
@@ -44,7 +52,9 @@ public class TotalAtomicMessage extends Message{
     
     @Override
     public String hashString() {
-        return super.hashString() + getType().toString();
+        return super.hashString() + getType().toString() + 
+                getProcessIdSender().toString()
+                + getProcessIdReceiver().toString();
     }
     
     @Override
@@ -52,4 +62,11 @@ public class TotalAtomicMessage extends Message{
         return this.hashString().hashCode();
     }
     
+    public ProcessIdentifier getProcessIdSender () {
+        return _processIdSender;
+    }
+    
+    public ProcessIdentifier getProcessIdReceiver () {
+        return _processIdReceiver;
+    }
 }
