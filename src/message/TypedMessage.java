@@ -1,8 +1,7 @@
 /* Coyright Eric Cariou, 2009 - 2011 */
 
-package service;
+package message;
 
-import communication.Message;
 import communication.ProcessIdentifier;
 
 /**

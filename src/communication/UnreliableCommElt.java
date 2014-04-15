@@ -2,6 +2,8 @@
 
 package communication;
 
+import message.Message;
+
 /**
  * Unreliable element: send a message without the possibility to know if it has been
  * received by the other element or has been lost.

@@ -6,12 +6,12 @@
 
 package service.broadcast;
 
-import communication.Message;
+import message.Message;
 import communication.SynchronizedBuffer;
 import java.util.ArrayList;
-import service.MessageType;
-import service.SeqMessage;
-import service.TypedMessage;
+import message.MessageType;
+import message.SeqMessage;
+import message.TypedMessage;
 
 /**
  *

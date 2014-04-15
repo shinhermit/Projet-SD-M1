@@ -7,8 +7,8 @@ import communication.CommunicationException;
 import communication.ProcessIdentifier;
 import communication.ReliableCommElt;
 import service.IIdentification;
-import service.MessageType;
-import service.TypedMessage;
+import message.MessageType;
+import message.TypedMessage;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;

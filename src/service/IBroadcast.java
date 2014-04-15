@@ -2,7 +2,7 @@
 
 package service;
 
-import communication.Message;
+import message.Message;
 import communication.CommunicationException;
 
 /**

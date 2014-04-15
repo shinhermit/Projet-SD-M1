@@ -2,6 +2,7 @@
 
 package service;
 
+import message.Message;
 import communication.*;
 
 /**

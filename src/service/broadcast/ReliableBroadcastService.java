@@ -3,17 +3,17 @@
 package service.broadcast;
 
 import communication.CommunicationException;
-import communication.Message;
+import message.Message;
 import communication.SynchronizedBuffer;
 import java.util.ArrayList;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
 import service.MessageDispatcher;
-import service.MessageType;
-import service.SeqMessage;
+import message.MessageType;
+import message.SeqMessage;
 import service.Service;
-import service.TypedMessage;
+import message.TypedMessage;
 
 public class ReliableBroadcastService  extends Service implements IBroadcast
 {

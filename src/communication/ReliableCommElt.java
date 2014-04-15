@@ -2,6 +2,8 @@
 
 package communication;
 
+import message.Message;
+
 /**
  * Reliable communication element: ensure that all data are sent to receivers or, in case of
  * communication problems, throw explicit exceptions. 

@@ -6,6 +6,8 @@
 
 package service;
 
+import message.MessageType;
+
 /**
  *
  * @author josuah

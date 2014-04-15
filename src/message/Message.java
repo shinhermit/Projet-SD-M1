@@ -1,8 +1,9 @@
 /* Coyright Eric Cariou, 2009 - 2011 */
 
-package communication;
+package message;
 
-import service.MessageType;
+import communication.ProcessIdentifier;
+import message.MessageType;
 
 /**
  * Messages are sent and received by processes. A message contains two fields: the identifier

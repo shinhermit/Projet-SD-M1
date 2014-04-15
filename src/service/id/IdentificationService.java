@@ -3,12 +3,12 @@
 package service.id;
 
 import communication.CommunicationElement;
-import communication.Message;
+import message.Message;
 import communication.ProcessIdentifier;
 import service.ICommunication;
 import service.IIdentification;
 import service.MessageDispatcher;
-import service.MessageType;
+import message.MessageType;
 import service.Service;
 
 import java.net.DatagramPacket;

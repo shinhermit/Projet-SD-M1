@@ -7,7 +7,7 @@
 package service.broadcast;
 
 import communication.CommunicationException;
-import communication.Message;
+import message.Message;
 import service.IBroadcast;
 import service.IIdentification;
 import service.Service;

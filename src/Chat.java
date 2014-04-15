@@ -2,7 +2,7 @@
 
 import communication.CommunicationException;
 import communication.FaultLevel;
-import communication.Message;
+import message.Message;
 import communication.ReliabilitySetting;
 
 import service.ICommunication;

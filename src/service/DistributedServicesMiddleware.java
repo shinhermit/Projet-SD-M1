@@ -2,6 +2,8 @@
 
 package service;
 
+import message.MessageType;
+import message.TypedMessage;
 import java.util.HashMap;
 
 import service.broadcast.ReliableBroadcastService;

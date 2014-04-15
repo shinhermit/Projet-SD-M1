@@ -4,9 +4,8 @@
  * and open the template in the editor.
  */
 
-package service;
+package message;
 
-import communication.Message;
 import communication.ProcessIdentifier;
 
 /**

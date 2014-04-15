@@ -2,8 +2,10 @@
 
 package service;
 
+import message.MessageType;
+import message.TypedMessage;
 import communication.CommunicationException;
-import communication.Message;
+import message.Message;
 import communication.SynchronizedBuffer;
 
 /**

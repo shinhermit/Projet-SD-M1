@@ -2,6 +2,7 @@
 
 package communication;
 
+import message.Message;
 import service.ICommunication;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

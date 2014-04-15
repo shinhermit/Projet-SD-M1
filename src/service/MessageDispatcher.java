@@ -2,7 +2,9 @@
 
 package service;
 
-import communication.Message;
+import message.MessageType;
+import message.TypedMessage;
+import message.Message;
 import communication.SynchronizedBuffer;
 import java.util.HashMap;
 

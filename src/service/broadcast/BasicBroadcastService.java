@@ -4,13 +4,13 @@ package service.broadcast;
 
 import communication.CommunicationException;
 import communication.CompoundException;
-import communication.Message;
+import message.Message;
 import communication.ProcessIdentifier;
 import java.util.Iterator;
 import service.IIdentification;
-import service.MessageType;
+import message.MessageType;
 import service.Service;
-import service.TypedMessage;
+import message.TypedMessage;
 import service.IBroadcast;
 
 /**
