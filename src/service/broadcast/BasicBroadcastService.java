@@ -12,7 +12,6 @@ import service.MessageType;
 import service.Service;
 import service.TypedMessage;
 import service.IBroadcast;
-import service.SeqMessage;
 
 /**
  * Implementation of a basic broadcast algorithm

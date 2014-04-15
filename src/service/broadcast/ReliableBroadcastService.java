@@ -47,6 +47,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
         super.initialize(dispatcher, commElt, myType);
         _basicBroadcaster.initialize(dispatcher, commElt, myType);
         
+        // Est-ce utile ? pas déjà pris en charge par le super.initialize ?
         serviceBuffer = dispatcher.associateService(myType);
         
         _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer, _reliableBuffer, _history);
