@@ -7,32 +7,35 @@
 package message;
 
 import communication.ProcessIdentifier;
+import java.util.HashMap;
 
 /**
  *
  * @author josuah
  */
-public class StampedMessage extends Message
+public class LogicalClock
 {
-    LogicalClock _stamp;
+    private HashMap<ProcessIdentifier, Integer> _clock;
     
-    public StampedMessage(ProcessIdentifier processId, Object data, LogicalClock stamp)
+    public LogicalClock()
     {
-        super(processId, data);
+        _clock = new HashMap();
+    }
+    
+    public void newEvent(ProcessIdentifier process)
+    {
+        Integer nb = _clock.get(process);
         
-        _stamp = stamp;
+        nb = (nb == null) ? 1 : nb+1;
+        
+        _clock.put(process, nb);
     }
     
-    public void setStamp(LogicalClock stamp)
+    public Integer getEventCounter(ProcessIdentifier process)
     {
-        _stamp = stamp;
+        return _clock.get(process);
     }
     
-    public LogicalClock getStamp()
-    {
-        return _stamp;
-    }
-
     @Override
     public boolean equals(Object other)
     {
@@ -43,24 +46,23 @@ public class StampedMessage extends Message
         
         else
         {
-            if(! (other instanceof StampedMessage))
+            if(! (other instanceof LogicalClock))
                 eq = false;
             
             else
             {
-                StampedMessage messOther = (StampedMessage)other;
+                LogicalClock stampOther = (LogicalClock)other;
                 
-                eq = (super.equals(messOther) && this._stamp == messOther._stamp);
+                eq = (this._clock == stampOther._clock);
             }
         }
         
         return eq;
     }
     
-    @Override
     public String hashString()
     {
-        return super.hashString() + _stamp.hashString();
+        return _clock.toString();
     }
     
     @Override
@@ -72,6 +74,6 @@ public class StampedMessage extends Message
     @Override
     public String toString()
     {
-        return "[ " + processId + ", Stamp: "+_stamp+" ] -> " + data;
+        return "Estampille: "+_clock.toString();
     }
 }

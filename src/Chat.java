@@ -31,7 +31,7 @@ public class Chat extends Thread {
         setting.setTransmissionDelayUpperBound(FaultLevel.NONE);
         setting.setPacketLostLevel(FaultLevel.NONE);
         setting.setCrashLevel(FaultLevel.NONE);
-        setting.setReliable(false);
+        setting.setReliable(true);
         setting.setDebugFault(true);
 
         // connection to the system
