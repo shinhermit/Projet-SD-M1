@@ -52,7 +52,18 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
         serviceBuffer = dispatcher.associateService(myType);
         
         _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer, _reliableBuffer, _history);
+    }
+    
+    @Override
+    public void startManagers()
+    {
         _reliabilityManager.start();
+    }
+    
+    @Override
+    public void terminateManagers()
+    {
+        _reliabilityManager.quit();
     }
 
     @Override

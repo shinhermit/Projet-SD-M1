@@ -16,6 +16,7 @@ import message.SeqMessage;
 import message.StampedMessage;
 import message.TypedMessage;
 import service.ICommunication;
+import service.IIdentification;
 import service.MessageDispatcher;
 
 /**
@@ -43,17 +44,35 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
     {
         super.initialize(dispatcher, commElt, myType);
-        
-        // super call above runs the reliabilityManager of ReliableBroadcastService
-        // We don't want this one (it doesn't have the good buffers)
+
         _reliabilityManager.quit();
         _reliabilityManager = null;
         
-        _causalityManager = new CausalityManager(idService.getMyIdentifier(), _localClock, serviceBuffer, _causalBuffer);
+        _causalityManager = new CausalityManager(_localClock, serviceBuffer, _causalBuffer);
         _reliabilityManager = new ReliabilityManager(_basicBroadcaster, _causalBuffer, _reliableBuffer, _history);
         
+    }
+    
+    @Override
+    public void startManagers()
+    {
         _causalityManager.start();
         _reliabilityManager.start();
+    }
+    
+    @Override
+    public void terminateManagers()
+    {
+        _causalityManager.quit();
+        _reliabilityManager.quit();
+    }
+
+    @Override
+    public void setIdentificationService(IIdentification idService)
+    {
+        super.setIdentificationService(idService);
+        
+        _causalityManager.setProcessId(idService.getMyIdentifier());
     }
 
     @Override

@@ -14,7 +14,7 @@ public interface IDistributedServices
      * Defines the available services
      */
     public enum ServiceSet {Communication, Identification, BasicBroadcast,
-                            ReliableBroadcast, CausalReliableBroadcast, TotalAtomic};
+                            ReliableBroadcast, CausalReliableBroadcast, TotalAtomicBroadcast};
 
     /**
      * Configures the process to the system using reliability settings and port number.

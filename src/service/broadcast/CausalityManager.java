@@ -29,7 +29,7 @@ public class CausalityManager extends Thread
     
     protected boolean _isOn;
     
-    public CausalityManager(ProcessIdentifier myId, LogicalClock localClock,
+    public CausalityManager(LogicalClock localClock,
             SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> causalBuffer)
     {
         _delayedMessages = new ArrayList();
@@ -37,9 +37,13 @@ public class CausalityManager extends Thread
         _serviceBuffer = serviceBuffer;
         _causalBuffer = causalBuffer;
         _localClock = localClock;
-        _myId = myId;
         
         _isOn = true;
+    }
+
+    public void setProcessId(ProcessIdentifier myId)
+    {
+        _myId = myId;
     }
 
     public StampedMessage fetchMessage()

@@ -59,4 +59,10 @@ public abstract class Service implements IService
         this.myType = myType;
         serviceBuffer = dispatcher.associateService(myType);
     }
+
+    @Override
+    public void startManagers(){}
+
+    @Override
+    public void terminateManagers(){}
 }

@@ -50,6 +50,13 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
         _reliableService.initialize(dispatcher, commElt, myType);
         
     }
+
+    /// Josh: I added these so you d'ont froget them whem you add some threads
+    @Override
+    public void startManagers(){}
+
+    @Override
+    public void terminateManagers(){}
     
     @Override 
     public void setIdentificationService(IIdentification idService) {
