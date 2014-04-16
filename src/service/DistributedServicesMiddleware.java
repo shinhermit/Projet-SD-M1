@@ -133,10 +133,10 @@ public class DistributedServicesMiddleware implements IDistributedServices
         ((IBroadcast)broadcaster).setIdentificationService(idService);
         ((IService)broadcaster).startManagers();
 
-//        broadcaster = _services.get(ServiceSet.CausalReliableBroadcast);
-//        broadcaster.initialize(dispatcher, commElt, MessageType.CAUSAL_RELIABLE_BROADCAST);
-//        ((IBroadcast)broadcaster).setIdentificationService(idService);
-//        ((IService)broadcaster).startManagers();
+        broadcaster = _services.get(ServiceSet.CausalReliableBroadcast);
+        broadcaster.initialize(dispatcher, commElt, MessageType.CAUSAL_RELIABLE_BROADCAST);
+        ((IBroadcast)broadcaster).setIdentificationService(idService);
+        ((IService)broadcaster).startManagers();
         
         broadcaster = _services.get(ServiceSet.TotalAtomicBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.TOTAL_ATOMIC_BROADCAST);

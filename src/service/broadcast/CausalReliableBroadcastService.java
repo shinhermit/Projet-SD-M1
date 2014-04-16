@@ -49,7 +49,7 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     {
         super.startManagers();
 
-        _reliabilityManager.start();
+        _causalityManager.start();
     }
     
     @Override
@@ -57,7 +57,7 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     {
         super.terminateManagers();
 
-        _reliabilityManager.quit();
+        _causalityManager.quit();
     }
 
     @Override
@@ -65,9 +65,11 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     {
         super.setIdentificationService(idService);
         
-        _causalityManager.setProcessId(this.idService.getMyIdentifier());
-        
-        for(ProcessIdentifier processId: this.idService.getAllIdentifiers())
+        _causalityManager.setProcessId(idService.getMyIdentifier());
+
+        // As above preivous call of a method on idService worked, it means
+        // idService is not null, but getAllIdentifiers is not working
+        for(ProcessIdentifier processId: idService.getAllIdentifiers())
         {
             _localClock.addProcess(processId);
         }
