@@ -33,37 +33,30 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     {
         _causalBuffer = new SynchronizedBuffer();
         _localClock = new LogicalClock();
-        
-        for(ProcessIdentifier processId: idService.getAllIdentifiers())
-        {
-            _localClock.addProcess(processId);
-        }
     }
 
     @Override
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
     {
         super.initialize(dispatcher, commElt, myType);
-
-        _reliabilityManager.quit();
-        _reliabilityManager = null;
         
         _causalityManager = new CausalityManager(_localClock, serviceBuffer, _causalBuffer);
-        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, _causalBuffer, _reliableBuffer, _history);
-        
+        _reliabilityManager.setBuffers(_causalBuffer, _reliableBuffer);
     }
     
     @Override
     public void startManagers()
     {
-        _causalityManager.start();
+        super.startManagers();
+
         _reliabilityManager.start();
     }
     
     @Override
     public void terminateManagers()
     {
-        _causalityManager.quit();
+        super.terminateManagers();
+
         _reliabilityManager.quit();
     }
 
@@ -72,16 +65,22 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
     {
         super.setIdentificationService(idService);
         
-        _causalityManager.setProcessId(idService.getMyIdentifier());
+        _causalityManager.setProcessId(this.idService.getMyIdentifier());
+        
+        for(ProcessIdentifier processId: this.idService.getAllIdentifiers())
+        {
+            _localClock.addProcess(processId);
+        }
     }
 
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
+        //Encapsulate SeqMessage into a StampedMessage
         SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
-        StampedMessage stampMess = new StampedMessage(seqMess.getProcessId(), data, _localClock);
+        StampedMessage stampMess = new StampedMessage(seqMess.getProcessId(), seqMess, _localClock);
         
-        //Encapsulate SeqMessage into a TypedMessage
+        //Encapsulate StampedMessage into a TypedMessage
         TypedMessage mess = new TypedMessage(this.idService.getMyIdentifier(), stampMess, MessageType.RELIABLE_BROADCAST);
 
         synchronized(_history)

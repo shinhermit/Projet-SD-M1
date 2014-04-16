@@ -99,6 +99,12 @@ import message.TypedMessage;
             this._reliableBuffer = reliableBuffer;
         }
         
+        public void setBuffers(SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer)
+        {
+            this._serviceBuffer = serviceBuffer;
+            this._reliableBuffer = reliableBuffer;
+        }
+        
         public void setBasicBroadcaster(BasicBroadcastService basicBroadcaster)
         {
             this._basicBroadcaster = basicBroadcaster;
