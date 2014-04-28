@@ -156,7 +156,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
         ReliableBroadcastService reliableService = new ReliableBroadcastService();
         _services.put(ServiceSet.ReliableBroadcast, reliableService);
         _services.put(ServiceSet.CausalReliableBroadcast, new CausalReliableBroadcastService(reliableService));
-//        _services.put(ServiceSet.TotalAtomicBroadcast, new TotalAtomicBroadcastService());
+        _services.put(ServiceSet.TotalAtomicBroadcast, new TotalAtomicBroadcastService(reliableService));
     }
 
     /**

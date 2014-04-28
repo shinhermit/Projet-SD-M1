@@ -40,8 +40,8 @@ public class CausalReliableBroadcastService implements IService, IBroadcast
         _localClock = new LogicalClock();
         
         _reliableBroadcaster = reliableBroadcaster;
-        _reliableBuffer = reliableBroadcaster.getReliableBuffer();
-        _causalBuffer = reliableBroadcaster.getCausalBuffer();
+        _reliableBuffer = reliableBroadcaster.getCausalBuffer();
+        _causalBuffer = new SynchronizedBuffer();
         
         _causalityManager = new CausalityManager(_localClock, _reliableBuffer, _causalBuffer);
         
