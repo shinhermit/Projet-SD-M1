@@ -22,5 +22,15 @@ public interface IService
      * @param myType the type of the service
      */
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType);
+   
+   /**
+    * Start all subservice managers (private buffers managers)
+    */
+   public void startManagers();
+   
+   /**
+    * Termiantes all subservice managers (private buffers managers)
+    */
+   public void terminateManagers();
     
 }

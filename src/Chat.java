@@ -31,7 +31,7 @@ public class Chat extends Thread {
         setting.setTransmissionDelayUpperBound(FaultLevel.NONE);
         setting.setPacketLostLevel(FaultLevel.NONE);
         setting.setCrashLevel(FaultLevel.NONE);
-        setting.setReliable(true);
+        setting.setReliable(false);
         setting.setDebugFault(true);
 
         // connection to the system
@@ -53,6 +53,7 @@ public class Chat extends Thread {
         idService = (IIdentification)services.getService(IDistributedServices.ServiceSet.Identification);
 //        broadcastService = (IBroadcast)services.getService(IDistributedServices.ServiceSet.BasicBroadcast);
         broadcastService = (IBroadcast)services.getService(IDistributedServices.ServiceSet.ReliableBroadcast);
+//        broadcastService = (IBroadcast)services.getService(IDistributedServices.ServiceSet.CausalReliableBroadcast);
 
         // as we are not directly informed when the process id has been received, wait a short time
         // to be almost sure to have received it when printing the identifier

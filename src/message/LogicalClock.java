@@ -8,6 +8,7 @@ package message;
 
 import communication.ProcessIdentifier;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  *
@@ -49,6 +50,11 @@ public class LogicalClock
     public Integer getEventCounter(ProcessIdentifier process)
     {
         return _clock.get(process);
+    }
+    
+    public Set<ProcessIdentifier> getAllProcessId()
+    {
+        return _clock.keySet();
     }
     
     @Override

@@ -37,13 +37,16 @@ public class DistributedServicesMiddleware implements IDistributedServices
      */
     protected MessageDispatcher dispatcher;
     
-    private void _config(ReliabilitySetting setting, int localPort) throws CommunicationException
+    private void _config(ReliabilitySetting setting, Integer localPort) throws CommunicationException
     {
         if (setting.isReliable())
         {
-            commElt = (localPort > 0) ? new ReliableCommElt(localPort) : new ReliableCommElt();
-        } else {
-            commElt = (localPort > 0) ? new UnreliableCommElt(localPort) : new UnreliableCommElt();
+            commElt = (localPort != null) ? new ReliableCommElt(localPort) : new ReliableCommElt();
+        }
+        
+        else
+        {
+            commElt = (localPort != null) ? new UnreliableCommElt(localPort) : new UnreliableCommElt();
         }
 
         commElt.setPacketLostLevel(setting.getPacketLostLevel());
@@ -63,7 +66,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
     @Override
     public void config(ReliabilitySetting setting) throws CommunicationException
     {
-        _config(setting, -1);
+        _config(setting, null);
     }
 
     @Override
@@ -128,12 +131,14 @@ public class DistributedServicesMiddleware implements IDistributedServices
         broadcaster = _services.get(ServiceSet.ReliableBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.RELIABLE_BROADCAST);
         ((IBroadcast)broadcaster).setIdentificationService(idService);
+        ((IService)broadcaster).startManagers();
 
         broadcaster = _services.get(ServiceSet.CausalReliableBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.CAUSAL_RELIABLE_BROADCAST);
         ((IBroadcast)broadcaster).setIdentificationService(idService);
+        ((IService)broadcaster).startManagers();
         
-        broadcaster = _services.get(ServiceSet.TotalAtomic);
+        broadcaster = _services.get(ServiceSet.TotalAtomicBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.TOTAL_ATOMIC_BROADCAST);
         ((IBroadcast)broadcaster).setIdentificationService(idService);
     }
@@ -149,7 +154,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
         _services.put(ServiceSet.BasicBroadcast, new BasicBroadcastService());
         _services.put(ServiceSet.ReliableBroadcast, new ReliableBroadcastService());
         _services.put(ServiceSet.CausalReliableBroadcast, new CausalReliableBroadcastService());
-        _services.put(ServiceSet.TotalAtomic, new TotalAtomicBroadcastService());
+        _services.put(ServiceSet.TotalAtomicBroadcast, new TotalAtomicBroadcastService());
     }
 
     /**
