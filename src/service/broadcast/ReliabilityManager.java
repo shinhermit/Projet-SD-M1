@@ -25,14 +25,14 @@ import message.TypedMessage;
         protected SynchronizedBuffer<Message> _serviceBuffer;
         protected SynchronizedBuffer<Message> _reliableBuffer;
         protected SynchronizedBuffer<Message> _causalBuffer;
-        protected SynchronizedBuffer<Message> _totalBuffer;
+        protected SynchronizedBuffer<TotalAtomicMessage> _totalBuffer;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
         protected boolean _isOn;
         
         public ReliabilityManager(BasicBroadcastService basicBroadcaster, SynchronizedBuffer<Message> serviceBuffer,
                 SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer, 
-                SynchronizedBuffer<Message> totalBuffer, ArrayList<SeqMessage> history)
+                SynchronizedBuffer<TotalAtomicMessage> totalBuffer, ArrayList<SeqMessage> history)
         {
             _serviceBuffer = serviceBuffer;
             _reliableBuffer = reliableBuffer;
@@ -116,14 +116,14 @@ import message.TypedMessage;
             this._causalBuffer = causalBuffer;
         }
         
-        public void setTotalBuffer(SynchronizedBuffer<Message> totalBuffer)
+        public void setTotalBuffer(SynchronizedBuffer<TotalAtomicMessage> totalBuffer)
         {
             this._totalBuffer = totalBuffer;
         }
         
         public void setBuffers(SynchronizedBuffer<Message> serviceBuffer,
                 SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer,
-                SynchronizedBuffer<Message> totalBuffer)
+                SynchronizedBuffer<TotalAtomicMessage> totalBuffer)
         {
             this._serviceBuffer = serviceBuffer;
             this._reliableBuffer = reliableBuffer;
@@ -151,7 +151,7 @@ import message.TypedMessage;
             return this._causalBuffer;
         }
         
-        public SynchronizedBuffer<Message> getTotalBuffer()
+        public SynchronizedBuffer<TotalAtomicMessage> getTotalBuffer()
         {
             return this._totalBuffer;
         }

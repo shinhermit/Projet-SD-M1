@@ -3,17 +3,18 @@
 package service.broadcast;
 
 import communication.CommunicationException;
-import message.Message;
 import communication.SynchronizedBuffer;
 import java.util.ArrayList;
+import message.Message;
+import message.MessageType;
+import message.SeqMessage;
+import message.TotalAtomicMessage;
+import message.TypedMessage;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
 import service.MessageDispatcher;
-import message.MessageType;
-import message.SeqMessage;
 import service.Service;
-import message.TypedMessage;
 
 public class ReliableBroadcastService  extends Service implements IBroadcast
 {
@@ -28,7 +29,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
      */
     protected SynchronizedBuffer<Message> _reliableBuffer;
     protected SynchronizedBuffer<Message> _causalBuffer;
-    protected SynchronizedBuffer<Message> _totalBuffer;
+    protected SynchronizedBuffer<TotalAtomicMessage> _totalBuffer;
 
     
     public ReliableBroadcastService()
@@ -119,12 +120,12 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     
     public SynchronizedBuffer<Message> getCausalBuffer()
     {
-        return _reliableBuffer;
+        return _causalBuffer;
     }
     
-    public SynchronizedBuffer<Message> getTotalBuffer()
+    public SynchronizedBuffer<TotalAtomicMessage> getTotalBuffer()
     {
-        return _reliableBuffer;
+        return _totalBuffer;
     }
     
     public IIdentification getIdService()

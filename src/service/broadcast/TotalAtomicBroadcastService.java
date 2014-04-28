@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package service.broadcast;
 
 import communication.CommunicationException;
@@ -19,6 +18,7 @@ import message.TotalAtomicType;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
+import service.IService;
 import service.MessageDispatcher;
 import service.Service;
 import service.id.IdentificationService;
@@ -27,7 +27,8 @@ import service.id.IdentificationService;
  *
  * @author ninjatrappeur
  */
-public class TotalAtomicBroadcastService{
+public class TotalAtomicBroadcastService implements IService {
+
     //Internals buffers
     //===============================
     private SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
@@ -38,8 +39,7 @@ public class TotalAtomicBroadcastService{
     //==============================
     private SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
     private SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
-    
-    
+
     //Internal stuff
     //=============================
     private ReliableBroadcastService _reliableService;
@@ -48,66 +48,64 @@ public class TotalAtomicBroadcastService{
     private boolean _wantToSendStuff;
     private HashMap<ProcessIdentifier, Integer> _requests;
     private HashMap<ProcessIdentifier, Integer> _token;
+    private boolean _isOn;
     //Private thread who read input buffer
     //=======================================
     private TotalAtomicManager _totalAtomicManager;
-    
-    public TotalAtomicBroadcastService () {
+
+    public TotalAtomicBroadcastService(ReliableBroadcastService serv) {
+        _reliableService = serv;
+        _inputBuffer = serv.getTotalBuffer();
+        _outputBuffer = new SynchronizedBuffer();
         _ackBuffer = new SynchronizedBuffer();
         _getToken = false;
         _wantToSendStuff = false;
+        _idService = serv.getIdService();
+        _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,
+                _tokenBuffer, _token, _isOn, _getToken, _wantToSendStuff, _reliableService, _idService);
     }
-    
-    public void initialize(IdentificationService idServ, ReliableBroadcastService serv, SynchronizedBuffer<TotalAtomicMessage> input,
-            SynchronizedBuffer<TotalAtomicMessage> output, IIdentification idservice) {
-        _idService = idservice;
-        _reliableService = serv;
-        _inputBuffer = input;
-        _outputBuffer = output;
-        _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,  
-                _tokenBuffer, _token, _getToken, _wantToSendStuff, serv, idServ);
-        _totalAtomicManager.start();
-    }
-    
-    public void broadcast(Object data) throws CommunicationException{
+
+    @Override
+    public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {}
+
+    public void broadcast(Object data) throws CommunicationException {
         //On s'assure que l'on a le token
         _wantToSendStuff = true;
-        if(!_getToken)
-        {
+        if (!_getToken) {
             //Si on ne l'as pas, on le demande et on l'attend.
             _reliableService.broadcast(
                     new TotalAtomicMessage(_idService.getMyIdentifier(), null, null,
                             TotalAtomicType.TOKEN_REQUEST));
             TotalAtomicMessage message;
-            while(!_getToken) {
+            while (!_getToken) {
                 message = _tokenBuffer.removeElement(true);
-                if(message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
+                if (message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
                     _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                     _getToken = true;
                 }
             }
         }
-        
+
         //On entre en SC: on envoie le message et on attend les accusés.
         _reliableService.broadcast(
                 new TotalAtomicMessage(_idService.getMyIdentifier(), null, data,
-                                       TotalAtomicType.PAYLOAD));
+                        TotalAtomicType.PAYLOAD));
         //On attend tous les accusés.
         int ack = 0;
         int nbSent = _idService.getAllIdentifiers().size();
         TotalAtomicMessage message;
         HashSet<ProcessIdentifier> acknoledged = new HashSet();
-        while(ack < nbSent) {
+        while (ack < nbSent) {
             message = _ackBuffer.removeElement(true);
-            if(!acknoledged.contains(message.getProcessIdSender())) {
+            if (!acknoledged.contains(message.getProcessIdSender())) {
                 ack++;
                 acknoledged.add(message.getProcessIdSender());
             }
         }
-        
+
         //On regarde si des gens attendent le token.
-        for(ProcessIdentifier id : _requests.keySet()) {
-            if(_requests.get(id) > _token.get(id) && _getToken) {
+        for (ProcessIdentifier id : _requests.keySet()) {
+            if (_requests.get(id) > _token.get(id) && _getToken) {
                 //Quelqu'un attend le token, on met à jour notre case et on 
                 //l'envoie.
                 ProcessIdentifier myId = _idService.getMyIdentifier();
@@ -118,21 +116,28 @@ public class TotalAtomicBroadcastService{
                 _getToken = false;
             }
         }
-        _wantToSendStuff = false;        
+        _wantToSendStuff = false;
     }
-    
-    public Message synchDeliver()
-    {
+
+    public Message synchDeliver() {
         return _outputBuffer.removeElement(true);
     }
 
-    public Message asynchDeliver()
-    {
+    public Message asynchDeliver() {
         return _outputBuffer.removeElement(false);
     }
 
-    public boolean availableMessage()
-    {
+    public boolean availableMessage() {
         return _outputBuffer.available() > 0;
+    }
+
+    @Override
+    public void startManagers() {
+        _totalAtomicManager.start();
+    }
+
+    @Override
+    public void terminateManagers() {
+        _isOn = false;
     }
 }

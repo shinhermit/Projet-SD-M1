@@ -13,6 +13,7 @@ import java.util.HashMap;
 import message.Message;
 import message.TotalAtomicMessage;
 import message.TotalAtomicType;
+import service.IIdentification;
 import service.id.IdentificationService;
 
 /**
@@ -27,20 +28,23 @@ public class TotalAtomicManager extends Thread{
     private SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
     private HashMap<ProcessIdentifier, Integer> _request;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private IdentificationService _idServ;
+    private IIdentification _idServ;
     private ReliableBroadcastService _reliableService;
     private boolean _getToken;
     private boolean _usingToken;
+    private boolean _isOn;
     
     public TotalAtomicManager (
             SynchronizedBuffer<TotalAtomicMessage> ack,
             SynchronizedBuffer<TotalAtomicMessage> input,
             SynchronizedBuffer<TotalAtomicMessage> tokenBuffer,
             HashMap<ProcessIdentifier, Integer> token,
+            boolean isOn,
             boolean getToken,
             boolean usingToken,
             ReliableBroadcastService serv,
-            IdentificationService idServ) {
+            IIdentification idServ) {
+        _isOn = isOn;
         _tokenRequestBuffer = new SynchronizedBuffer();
         _ackBuffer = ack;
         _tokenBuffer = tokenBuffer;
