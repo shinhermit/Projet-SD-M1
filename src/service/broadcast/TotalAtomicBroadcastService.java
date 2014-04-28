@@ -35,6 +35,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     private HashMap<ProcessIdentifier, Integer> _token;
     private HashMap<ProcessIdentifier, Integer> _requests;
     private boolean _getToken;
+    private TotalAtomicManager _totalAtomicManager;
     
     public TotalAtomicBroadcastService () {
         _tokenBuffer = new SynchronizedBuffer();
@@ -48,6 +49,8 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType) {
         super.initialize(dispatcher, commElt, myType);
         _reliableService.initialize(dispatcher, commElt, myType);
+        _totalAtomicManager = new TotalAtomicManager(_tokenBuffer,_ackBuffer, _tokenRequestBuffer, serviceBuffer, _reliableService);
+        _totalAtomicManager.start();
         
     }
     
