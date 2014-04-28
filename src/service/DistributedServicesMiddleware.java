@@ -11,6 +11,7 @@ import java.util.HashMap;
 import message.MessageType;
 import message.TypedMessage;
 import service.broadcast.BasicBroadcastService;
+import service.broadcast.CausalReliableBroadcastService;
 import service.broadcast.ReliableBroadcastService;
 import service.broadcast.TotalAtomicBroadcastService;
 import service.id.IdentificationService;
@@ -151,9 +152,11 @@ public class DistributedServicesMiddleware implements IDistributedServices
         _services.put(ServiceSet.Identification, new IdentificationService());
         _services.put(ServiceSet.Communication, new ProxyCommunication());
         _services.put(ServiceSet.BasicBroadcast, new BasicBroadcastService());
-//        _services.put(ServiceSet.ReliableBroadcast, new ReliableBroadcastService());
-//        _services.put(ServiceSet.CausalReliableBroadcast, new CausalReliableBroadcastService());
-        _services.put(ServiceSet.TotalAtomicBroadcast, new TotalAtomicBroadcastService());
+        
+        ReliableBroadcastService reliableService = new ReliableBroadcastService();
+        _services.put(ServiceSet.ReliableBroadcast, reliableService);
+        _services.put(ServiceSet.CausalReliableBroadcast, new CausalReliableBroadcastService(reliableService));
+//        _services.put(ServiceSet.TotalAtomicBroadcast, new TotalAtomicBroadcastService());
     }
 
     /**

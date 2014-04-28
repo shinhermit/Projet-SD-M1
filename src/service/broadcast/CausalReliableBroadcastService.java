@@ -1,98 +1,119 @@
-///*
-// * To change this license header, choose License Headers in Project Properties.
-// * To change this template file, choose Tools | Templates
-// * and open the template in the editor.
-// */
-//
-//package service.broadcast;
-//
-//import communication.CommunicationException;
-//import communication.ProcessIdentifier;
-//import communication.SynchronizedBuffer;
-//import message.LogicalClock;
-//import message.Message;
-//import message.MessageType;
-//import message.SeqMessage;
-//import message.StampedMessage;
-//import message.TypedMessage;
-//import service.ICommunication;
-//import service.IIdentification;
-//import service.MessageDispatcher;
-//
-///**
-// *
-// * @author josuah
-// */
-//public class CausalReliableBroadcastService  extends ReliableBroadcastService
-//{
-//    protected CausalityManager _causalityManager;
-//    protected SynchronizedBuffer<Message> _causalBuffer;
-//    protected LogicalClock _localClock;
-//
-//    public CausalReliableBroadcastService()
-//    {
-//        _causalBuffer = new SynchronizedBuffer();
-//        _localClock = new LogicalClock();
-//    }
-//
-//    @Override
-//    public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
-//    {
-//        super.initialize(dispatcher, commElt, myType);
-//        
-//        _causalityManager = new CausalityManager(_localClock, serviceBuffer, _causalBuffer);
-//        //_reliabilityManager.setBuffers(_causalBuffer, _reliableBuffer);
-//    }
-//    
-//    @Override
-//    public void startManagers()
-//    {
-//        super.startManagers();
-//
-//        _causalityManager.start();
-//    }
-//    
-//    @Override
-//    public void terminateManagers()
-//    {
-//        super.terminateManagers();
-//
-//        _causalityManager.quit();
-//    }
-//
-//    @Override
-//    public void setIdentificationService(IIdentification idService)
-//    {
-//        super.setIdentificationService(idService);
-//        
-//        _causalityManager.setProcessId(idService.getMyIdentifier());
-//
-//        // As above preivous call of a method on idService worked, it means
-//        // idService is not null, but getAllIdentifiers is not working
-//        if(idService.getAllIdentifiers() == null)
-//            try { Thread.sleep(200); } catch(Exception e) { }
-//        
-//        for(ProcessIdentifier processId: idService.getAllIdentifiers())
-//        {
-//            _localClock.addProcess(processId);
-//        }
-//    }
-//
-//    @Override
-//    public void broadcast(Object data) throws CommunicationException
-//    {
-//        //Encapsulate SeqMessage into a StampedMessage
-//        SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
-//        StampedMessage stampMess = new StampedMessage(seqMess.getProcessId(), seqMess, _localClock);
-//        
-//        //Encapsulate StampedMessage into a TypedMessage
-//        TypedMessage mess = new TypedMessage(this.idService.getMyIdentifier(), stampMess, MessageType.RELIABLE_BROADCAST);
-//
-//        synchronized(_history)
-//        {
-//            _history.add(seqMess);
-//        }
-//
-//        _basicBroadcaster.broadcast(mess);
-//    }
-//}
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package service.broadcast;
+
+import communication.CommunicationException;
+import communication.ProcessIdentifier;
+import communication.SynchronizedBuffer;
+import message.LogicalClock;
+import message.Message;
+import message.MessageType;
+import message.StampedMessage;
+import service.IBroadcast;
+import service.ICommunication;
+import service.IIdentification;
+import service.MessageDispatcher;
+import service.IService;
+
+/**
+ *
+ * @author josuah
+ */
+public class CausalReliableBroadcastService implements IService, IBroadcast
+{
+    protected IIdentification idService;
+    
+    protected ReliableBroadcastService _reliableBroadcaster;
+    protected SynchronizedBuffer<Message> _reliableBuffer;
+    protected IIdentification _idService;
+    
+    protected CausalityManager _causalityManager;
+    protected SynchronizedBuffer<Message> _causalBuffer;
+    protected LogicalClock _localClock;
+
+    public CausalReliableBroadcastService(ReliableBroadcastService reliableBroadcaster)
+    {
+        _localClock = new LogicalClock();
+        
+        _reliableBroadcaster = reliableBroadcaster;
+        _reliableBuffer = reliableBroadcaster.getReliableBuffer();
+        _causalBuffer = reliableBroadcaster.getCausalBuffer();
+        
+        _causalityManager = new CausalityManager(_localClock, _reliableBuffer, _causalBuffer);
+        
+        _setIdentificationService(reliableBroadcaster.getIdService());
+    }
+
+    @Override
+    public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
+    {}
+    
+    @Override
+    public void startManagers()
+    {
+        _causalityManager.start();
+    }
+    
+    @Override
+    public void terminateManagers()
+    {
+        _causalityManager.quit();
+    }
+    
+    /**
+     * Avoids warning when public method used.
+     * @param idService 
+     */
+    private void _setIdentificationService(IIdentification idService)
+    {
+        _idService = idService;
+        _causalityManager.setProcessId(_idService.getMyIdentifier());
+        
+        /* ****** Initialize clock ****** */
+        // as we are not directly informed when the process id has been received, wait a short time
+        // to be almost sure to have received it when printing the identifier
+        if(_idService.getAllIdentifiers() == null)
+            try { Thread.sleep(200); } catch(Exception e) { }
+        
+        for(ProcessIdentifier processId: _idService.getAllIdentifiers())
+        {
+            _localClock.addProcess(processId);
+        }
+    }
+    
+    @Override
+    public void setIdentificationService(IIdentification idService)
+    {
+        _setIdentificationService(idService);
+    }
+    
+    @Override
+   public Message synchDeliver()
+   {
+        return _causalBuffer.removeElement(true);
+   }
+
+    @Override
+    public Message asynchDeliver()
+    {
+        return _causalBuffer.removeElement(false);
+    }
+
+    @Override
+    public void broadcast(Object data) throws CommunicationException
+    {
+        StampedMessage stampMess = new StampedMessage(this.idService.getMyIdentifier(), data, _localClock);
+        
+        _reliableBroadcaster.broadcast(stampMess);
+    }
+
+    @Override
+    public boolean availableMessage()
+    {
+        return _causalBuffer.available() > 0;
+    }
+}

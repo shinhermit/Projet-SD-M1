@@ -89,6 +89,8 @@ import message.TypedMessage;
                             _causalBuffer.addElement((StampedMessage)encapsulated);
                         else if(encapsulated instanceof TotalAtomicMessage)
                             _totalBuffer.addElement((TotalAtomicMessage)encapsulated);
+                        else if(encapsulated instanceof SeqMessage)
+                            _reliableBuffer.addElement(((SeqMessage)encapsulated).toMessage());
                     }
                     
                     catch(Exception e)

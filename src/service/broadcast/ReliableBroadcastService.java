@@ -31,12 +31,12 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     protected SynchronizedBuffer<Message> _totalBuffer;
 
     
-    public ReliableBroadcastService(SynchronizedBuffer<Message> causalBuffer, SynchronizedBuffer<Message> totalBuffer)
+    public ReliableBroadcastService()
     {
         _basicBroadcaster = new BasicBroadcastService();
         _reliableBuffer = new SynchronizedBuffer();
-        _causalBuffer = causalBuffer;
-        _totalBuffer = totalBuffer;
+        _causalBuffer = new SynchronizedBuffer();
+        _totalBuffer = new SynchronizedBuffer();
         _history = new ArrayList();
     }
 
@@ -110,5 +110,25 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public boolean availableMessage()
     {
         return _reliableBuffer.available() > 0;
+    }
+    
+    public SynchronizedBuffer<Message> getReliableBuffer()
+    {
+        return _reliableBuffer;
+    }
+    
+    public SynchronizedBuffer<Message> getCausalBuffer()
+    {
+        return _reliableBuffer;
+    }
+    
+    public SynchronizedBuffer<Message> getTotalBuffer()
+    {
+        return _reliableBuffer;
+    }
+    
+    public IIdentification getIdService()
+    {
+        return this.idService;
     }
 }

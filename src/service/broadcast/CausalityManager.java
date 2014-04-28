@@ -21,7 +21,7 @@ import message.StampedMessage;
  */
 public class CausalityManager extends Thread
 {
-    protected SynchronizedBuffer<Message> _serviceBuffer;
+    protected SynchronizedBuffer<Message> _reliableBuffer;
     protected SynchronizedBuffer<Message> _causalBuffer;
     protected ArrayList<DelayedMessage> _delayedMessages;
     protected LogicalClock _localClock;
@@ -30,11 +30,11 @@ public class CausalityManager extends Thread
     protected boolean _isOn;
     
     public CausalityManager(LogicalClock localClock,
-            SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> causalBuffer)
+            SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer)
     {
         _delayedMessages = new ArrayList();
         
-        _serviceBuffer = serviceBuffer;
+        _reliableBuffer = reliableBuffer;
         _causalBuffer = causalBuffer;
         _localClock = localClock;
         
@@ -48,7 +48,7 @@ public class CausalityManager extends Thread
 
     public StampedMessage fetchMessage()
     {
-        Message mess = _serviceBuffer.removeElement(true);
+        Message mess = _reliableBuffer.removeElement(true);
         Object data = mess.getData();
 
         if(! (data instanceof StampedMessage) )
@@ -101,8 +101,8 @@ public class CausalityManager extends Thread
             
             if(delayedMess.isReady())
             {
-                //Add id back to serviceBuffer, so it will be by this method again
-                _serviceBuffer.addElement(delayedMess.getStampesMessage());
+                //Add id back to serviceBuffer, so it will be processed by this method again
+                _reliableBuffer.addElement(delayedMess.getStampesMessage());
                 _delayedMessages.remove(delayedMess); // Is it safe to continue iterating the list?
             }
         }
