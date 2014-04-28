@@ -11,6 +11,8 @@ import communication.SynchronizedBuffer;
 import java.util.ArrayList;
 import message.MessageType;
 import message.SeqMessage;
+import message.StampedMessage;
+import message.TotalAtomicMessage;
 import message.TypedMessage;
 
 /**
@@ -22,16 +24,20 @@ import message.TypedMessage;
     {
         protected SynchronizedBuffer<Message> _serviceBuffer;
         protected SynchronizedBuffer<Message> _reliableBuffer;
+        protected SynchronizedBuffer<Message> _causalBuffer;
+        protected SynchronizedBuffer<Message> _totalBuffer;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
         protected boolean _isOn;
         
-        public ReliabilityManager(BasicBroadcastService basicBroadcaster,
-                SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer,
-                ArrayList<SeqMessage> history)
+        public ReliabilityManager(BasicBroadcastService basicBroadcaster, SynchronizedBuffer<Message> serviceBuffer,
+                SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer, 
+                SynchronizedBuffer<Message> totalBuffer, ArrayList<SeqMessage> history)
         {
             _serviceBuffer = serviceBuffer;
             _reliableBuffer = reliableBuffer;
+            _causalBuffer = causalBuffer;
+            _totalBuffer = totalBuffer;
             _basicBroadcaster = basicBroadcaster;
             _history = history;
             
@@ -77,8 +83,12 @@ import message.TypedMessage;
                     try
                     {
                         _basicBroadcaster.broadcast(new TypedMessage(seqMess.getProcessId(), seqMess, MessageType.RELIABLE_BROADCAST));
-                    
-                        _reliableBuffer.addElement(seqMess.toMessage());
+                        
+                        Object encapsulated = seqMess.getData();
+                        if(encapsulated instanceof StampedMessage)
+                            _causalBuffer.addElement((StampedMessage)encapsulated);
+                        else if(encapsulated instanceof TotalAtomicMessage)
+                            _totalBuffer.addElement((TotalAtomicMessage)encapsulated);
                     }
                     
                     catch(Exception e)
@@ -99,10 +109,24 @@ import message.TypedMessage;
             this._reliableBuffer = reliableBuffer;
         }
         
-        public void setBuffers(SynchronizedBuffer<Message> serviceBuffer, SynchronizedBuffer<Message> reliableBuffer)
+        public void setCausalBuffer(SynchronizedBuffer<Message> causalBuffer)
+        {
+            this._causalBuffer = causalBuffer;
+        }
+        
+        public void setTotalBuffer(SynchronizedBuffer<Message> totalBuffer)
+        {
+            this._totalBuffer = totalBuffer;
+        }
+        
+        public void setBuffers(SynchronizedBuffer<Message> serviceBuffer,
+                SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer,
+                SynchronizedBuffer<Message> totalBuffer)
         {
             this._serviceBuffer = serviceBuffer;
             this._reliableBuffer = reliableBuffer;
+            this._causalBuffer = causalBuffer;
+            this._totalBuffer = totalBuffer;
         }
         
         public void setBasicBroadcaster(BasicBroadcastService basicBroadcaster)
@@ -118,6 +142,16 @@ import message.TypedMessage;
         public SynchronizedBuffer<Message> getReliableBuffer()
         {
             return this._reliableBuffer;
+        }
+        
+        public SynchronizedBuffer<Message> getCausalBuffer()
+        {
+            return this._causalBuffer;
+        }
+        
+        public SynchronizedBuffer<Message> getTotalBuffer()
+        {
+            return this._totalBuffer;
         }
         
         public BasicBroadcastService getBasicBroadcaster()

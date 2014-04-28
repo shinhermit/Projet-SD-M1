@@ -69,6 +69,9 @@ public class CausalReliableBroadcastService  extends ReliableBroadcastService
 
         // As above preivous call of a method on idService worked, it means
         // idService is not null, but getAllIdentifiers is not working
+        if(idService.getAllIdentifiers() == null)
+            try { Thread.sleep(200); } catch(Exception e) { }
+        
         for(ProcessIdentifier processId: idService.getAllIdentifiers())
         {
             _localClock.addProcess(processId);

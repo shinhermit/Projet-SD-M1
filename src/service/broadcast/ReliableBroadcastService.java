@@ -27,12 +27,16 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
      * Buffer containing the filtered received messages.
      */
     protected SynchronizedBuffer<Message> _reliableBuffer;
+    protected SynchronizedBuffer<Message> _causalBuffer;
+    protected SynchronizedBuffer<Message> _totalBuffer;
 
     
-    public ReliableBroadcastService()
+    public ReliableBroadcastService(SynchronizedBuffer<Message> causalBuffer, SynchronizedBuffer<Message> totalBuffer)
     {
         _basicBroadcaster = new BasicBroadcastService();
         _reliableBuffer = new SynchronizedBuffer();
+        _causalBuffer = causalBuffer;
+        _totalBuffer = totalBuffer;
         _history = new ArrayList();
     }
 
@@ -51,7 +55,8 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
         // Est-ce utile ? pas déjà pris en charge par le super.initialize ?
         serviceBuffer = dispatcher.associateService(myType);
         
-        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer, _reliableBuffer, _history);
+        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer,
+                _reliableBuffer, _causalBuffer, _totalBuffer, _history);
     }
     
     @Override
