@@ -72,20 +72,17 @@ public class TotalAtomicBroadcastService{
     public void broadcast(Object data) throws CommunicationException{
         //On s'assure que l'on a le token
         _wantToSendStuff = true;
-        HashMap<ProcessIdentifier, Integer> token;
         if(!_getToken)
         {
             //Si on ne l'as pas, on le demande et on l'attend.
             _reliableService.broadcast(
-                    new TotalAtomicMessage(_idService.getMyIdentifier(),
-                                           null,
-                                           _idService.getMyIdentifier(),
-                                           TotalAtomicType.TOKEN_REQUEST));
+                    new TotalAtomicMessage(_idService.getMyIdentifier(), null, null,
+                            TotalAtomicType.TOKEN_REQUEST));
             TotalAtomicMessage message;
             while(!_getToken) {
                 message = _tokenBuffer.removeElement(true);
                 if(message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
-                    token = (HashMap<ProcessIdentifier, Integer>) message.getData();
+                    _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                     _getToken = true;
                 }
             }
@@ -110,20 +107,18 @@ public class TotalAtomicBroadcastService{
         
         //On regarde si des gens attendent le token.
         for(ProcessIdentifier id : _requests.keySet()) {
-            if(_requests.get(id) > token.get(id) && _getToken) {
+            if(_requests.get(id) > _token.get(id) && _getToken) {
                 //Quelqu'un attend le token, on met à jour notre case et on 
                 //l'envoie.
                 ProcessIdentifier myId = _idService.getMyIdentifier();
-                token.put(myId, token.get(myId) + 1);
+                _token.put(myId, _token.get(myId) + 1);
                 _reliableService.broadcast(
                         new TotalAtomicMessage(_idService.getMyIdentifier(),
-                                id, token, TotalAtomicType.TOKEN));
+                                id, _token, TotalAtomicType.TOKEN));
                 _getToken = false;
             }
         }
-        _wantToSendStuff = false;
-        //Sinon on garde le token. Que faire???? TODO
-        
+        _wantToSendStuff = false;        
     }
     
     public Message synchDeliver()

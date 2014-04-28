@@ -56,6 +56,7 @@ public class TotalAtomicManager extends Thread{
         while(true) {
             TotalAtomicMessage message = fetchMessage();
             switch(message.getType()) {
+                //Si on reçoit du payload, on envoie un acquittement et on fait passer dans le buffer sortie.
                 case PAYLOAD :
                     try {
                         _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(),
@@ -64,14 +65,17 @@ public class TotalAtomicManager extends Thread{
                     _outputBuffer.addElement(message);
                     break;
                     
+                //Si on reçoit le jeton, on le recopie et on réveille le service qui était en attente à l'aide du buffer de jeton.    
                 case TOKEN :
                     if(message.getProcessIdReceiver().equals(_idServ.getMyIdentifier())) {
                         _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
-                     _getToken = true;
-                     _tokenBuffer.addElement(message);
+                        _getToken = true;
+                        _tokenBuffer.addElement(message);
                     }
                     break;
                     
+                //Si on reçoit une requête de jeton, on regarde si on a le jeton et que l'on ne s'en sert pas.
+                //Si c'est le cas on l'envoie. Sinon on incrémente les demandes.
                 case TOKEN_REQUEST:
                     _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
                     if(_getToken && !_usingToken) {
@@ -84,6 +88,7 @@ public class TotalAtomicManager extends Thread{
                     }
                     break;
                     
+                //On fait passer l'acquittement au service (c'est lui qui se charge de les compter).    
                 case ACK:
                     if(message.getProcessIdReceiver() == _idServ.getMyIdentifier())
                         _ackBuffer.addElement(message);
