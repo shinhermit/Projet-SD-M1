@@ -21,55 +21,58 @@ import service.ICommunication;
 import service.IIdentification;
 import service.MessageDispatcher;
 import service.Service;
+import service.id.IdentificationService;
 
 /**
  *
  * @author ninjatrappeur
  */
-public class TotalAtomicBroadcastService extends Service implements IBroadcast {
-    private SynchronizedBuffer<TotalAtomicMessage> _tokenRequestBuffer;
+public class TotalAtomicBroadcastService{
+    //Internals buffers
+    //===============================
     private SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
+    //Output buffer
+    //==============================
+    private SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
+    //Input Buffer: not clean, for manager thread use only!!!!!
+    //==============================
+    private SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
     private SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
+    
+    
+    //Internal stuff
+    //=============================
     private ReliableBroadcastService _reliableService;
     private IIdentification _idService;
-    private HashMap<ProcessIdentifier, Integer> _token;
-    private HashMap<ProcessIdentifier, Integer> _requests;
     private boolean _getToken;
+    private boolean _wantToSendStuff;
+    private HashMap<ProcessIdentifier, Integer> _requests;
+    private HashMap<ProcessIdentifier, Integer> _token;
+    //Private thread who read input buffer
+    //=======================================
     private TotalAtomicManager _totalAtomicManager;
     
     public TotalAtomicBroadcastService () {
-        _tokenBuffer = new SynchronizedBuffer();
-        _tokenRequestBuffer = new SynchronizedBuffer();
         _ackBuffer = new SynchronizedBuffer();
-        _reliableService = new ReliableBroadcastService();
         _getToken = false;
+        _wantToSendStuff = false;
     }
     
-    @Override
-    public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType) {
-        super.initialize(dispatcher, commElt, myType);
-        _reliableService.initialize(dispatcher, commElt, myType);
-        _totalAtomicManager = new TotalAtomicManager(_tokenBuffer,_ackBuffer, _tokenRequestBuffer, serviceBuffer, _reliableService);
+    public void initialize(IdentificationService idServ, ReliableBroadcastService serv, SynchronizedBuffer<TotalAtomicMessage> input,
+            SynchronizedBuffer<TotalAtomicMessage> output, IIdentification idservice) {
+        _idService = idservice;
+        _reliableService = serv;
+        _inputBuffer = input;
+        _outputBuffer = output;
+        _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,  
+                _tokenBuffer, _token, _getToken, _wantToSendStuff, serv, idServ);
         _totalAtomicManager.start();
-        
-    }
-
-    /// Josh: I added these so you d'ont froget them whem you add some threads
-    @Override
-    public void startManagers(){}
-
-    @Override
-    public void terminateManagers(){}
-    
-    @Override 
-    public void setIdentificationService(IIdentification idService) {
-        _idService = idService;
-        _reliableService.setIdentificationService(idService);
     }
     
-    @Override
     public void broadcast(Object data) throws CommunicationException{
         //On s'assure que l'on a le token
+        _wantToSendStuff = true;
+        HashMap<ProcessIdentifier, Integer> token;
         if(!_getToken)
         {
             //Si on ne l'as pas, on le demande et on l'attend.
@@ -82,7 +85,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
             while(!_getToken) {
                 message = _tokenBuffer.removeElement(true);
                 if(message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
-                    _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
+                    token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                     _getToken = true;
                 }
             }
@@ -105,39 +108,36 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
             }
         }
         
-        boolean sent = false;
         //On regarde si des gens attendent le token.
         for(ProcessIdentifier id : _requests.keySet()) {
-            if(_requests.get(id) > _token.get(id) && !sent) {
+            if(_requests.get(id) > token.get(id) && _getToken) {
                 //Quelqu'un attend le token, on met à jour notre case et on 
                 //l'envoie.
                 ProcessIdentifier myId = _idService.getMyIdentifier();
-                _token.put(myId, _token.get(myId) + 1);
+                token.put(myId, token.get(myId) + 1);
                 _reliableService.broadcast(
                         new TotalAtomicMessage(_idService.getMyIdentifier(),
-                                id, _token, TotalAtomicType.TOKEN));
-                sent = true;
+                                id, token, TotalAtomicType.TOKEN));
+                _getToken = false;
             }
         }
+        _wantToSendStuff = false;
         //Sinon on garde le token. Que faire???? TODO
         
     }
     
-    @Override
     public Message synchDeliver()
     {
-        return _reliableService.synchDeliver();
+        return _outputBuffer.removeElement(true);
     }
 
-    @Override
     public Message asynchDeliver()
     {
-        return _reliableService.asynchDeliver();
+        return _outputBuffer.removeElement(false);
     }
 
-    @Override
     public boolean availableMessage()
     {
-        return _reliableService.availableMessage();
+        return _outputBuffer.available() > 0;
     }
 }

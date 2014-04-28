@@ -6,10 +6,14 @@
 
 package service.broadcast;
 
+import communication.CommunicationException;
+import communication.ProcessIdentifier;
 import communication.SynchronizedBuffer;
+import java.util.HashMap;
 import message.Message;
 import message.TotalAtomicMessage;
 import message.TotalAtomicType;
+import service.id.IdentificationService;
 
 /**
  *
@@ -19,18 +23,32 @@ public class TotalAtomicManager extends Thread{
     private SynchronizedBuffer<TotalAtomicMessage> _tokenRequestBuffer;
     private SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
     private SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
+    private SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
+    private SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
+    private HashMap<ProcessIdentifier, Integer> _request;
+    private HashMap<ProcessIdentifier, Integer> _token;
+    private IdentificationService _idServ;
     private ReliableBroadcastService _reliableService;
-    private SynchronizedBuffer<Message> _serviceBuffer;
+    private boolean _getToken;
+    private boolean _usingToken;
     
-    public TotalAtomicManager (SynchronizedBuffer<TotalAtomicMessage> token,
+    public TotalAtomicManager (
             SynchronizedBuffer<TotalAtomicMessage> ack,
-            SynchronizedBuffer<TotalAtomicMessage> reqToken,
-            SynchronizedBuffer<Message> serviceBuffer,
-            ReliableBroadcastService serv) {
-        _tokenRequestBuffer = reqToken;
+            SynchronizedBuffer<TotalAtomicMessage> input,
+            SynchronizedBuffer<TotalAtomicMessage> tokenBuffer,
+            HashMap<ProcessIdentifier, Integer> token,
+            boolean getToken,
+            boolean usingToken,
+            ReliableBroadcastService serv,
+            IdentificationService idServ) {
+        _tokenRequestBuffer = new SynchronizedBuffer();
         _ackBuffer = ack;
-        _tokenBuffer = token;
+        _tokenBuffer = tokenBuffer;
+        _token = token;
         _reliableService = serv;
+        _inputBuffer = input;
+        _usingToken = usingToken;
+        _idServ = idServ;
     }
     
     @Override
@@ -39,7 +57,40 @@ public class TotalAtomicManager extends Thread{
             TotalAtomicMessage message = fetchMessage();
             switch(message.getType()) {
                 case PAYLOAD :
-                    _reliableService.
+                    try {
+                        _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(),
+                            message.getProcessIdSender(), "", TotalAtomicType.ACK));
+                    } catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
+                    _outputBuffer.addElement(message);
+                    break;
+                    
+                case TOKEN :
+                    if(message.getProcessIdReceiver().equals(_idServ.getMyIdentifier())) {
+                        _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
+                     _getToken = true;
+                     _tokenBuffer.addElement(message);
+                    }
+                    break;
+                    
+                case TOKEN_REQUEST:
+                    _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
+                    if(_getToken && !_usingToken) {
+                        try{
+                            _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), message.getProcessIdSender(), _token, TotalAtomicType.TOKEN));
+                        }
+                        catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
+                    } else {
+                        _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
+                    }
+                    break;
+                    
+                case ACK:
+                    if(message.getProcessIdReceiver() == _idServ.getMyIdentifier())
+                        _ackBuffer.addElement(message);
+                    break;
+                    
+                default:
+                    throw new IllegalStateException("TotalAtomicManager.run: message type unknown: " + message.getType().toString());
             }
         }
     }
@@ -47,7 +98,7 @@ public class TotalAtomicManager extends Thread{
     
     public TotalAtomicMessage fetchMessage()
     {
-        Message mess = _serviceBuffer.removeElement(true);
+        Message mess = _inputBuffer.removeElement(true);
         Object data = mess.getData();
            
         if(! (data instanceof TotalAtomicMessage) )
