@@ -27,7 +27,8 @@ public class BasicBroadcastService extends Service implements IBroadcast
         this.idService = idService;
     }
     
-    public void broadcast(Message mess)  throws CommunicationException
+    @Override
+    public void broadcast(Object data)  throws CommunicationException
     {
         ProcessIdentifier id;
         Iterator it;
@@ -45,8 +46,7 @@ public class BasicBroadcastService extends Service implements IBroadcast
                 // simulate the crash of the process during the broadcast
                 commElt.crashProcess();
                 
-                mess.setProcessId(id);
-                commElt.sendMessage(mess);
+                commElt.sendMessage(new TypedMessage(id, data, MessageType.BASIC_BROADCAST));
             }
             catch (CommunicationException e)
             {
@@ -66,12 +66,6 @@ public class BasicBroadcastService extends Service implements IBroadcast
         if (exceptions != null) throw exceptions;
         if (firstException != null) throw firstException;
     }
-
-    @Override
-    public void broadcast(Object data) throws CommunicationException
-    {
-        this.broadcast(new TypedMessage(this.idService.getMyIdentifier(), data, MessageType.BASIC_BROADCAST));
-     }
 
     @Override
     public Message synchDeliver()

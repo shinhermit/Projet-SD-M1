@@ -53,6 +53,7 @@ public class SeqMessage extends TypedMessage
     {
         boolean eq = false;
         
+        // Same reference
         if(other == this)
             eq = true;
         

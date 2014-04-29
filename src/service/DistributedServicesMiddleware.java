@@ -141,6 +141,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
         broadcaster = _services.get(ServiceSet.TotalAtomicBroadcast);
         broadcaster.initialize(dispatcher, commElt, MessageType.TOTAL_ATOMIC_BROADCAST);
         ((IBroadcast)broadcaster).setIdentificationService(idService);
+        ((IService)broadcaster).startManagers();
     }
 
     public DistributedServicesMiddleware()

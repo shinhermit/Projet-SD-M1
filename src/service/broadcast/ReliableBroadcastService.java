@@ -54,7 +54,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
         _basicBroadcaster.initialize(dispatcher, commElt, myType);
         
         // Est-ce utile ? pas déjà pris en charge par le super.initialize ?
-        serviceBuffer = dispatcher.associateService(myType);
+//        serviceBuffer = dispatcher.associateService(myType);
         
         _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer,
                 _reliableBuffer, _causalBuffer, _totalBuffer, _history);
@@ -83,16 +83,13 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public void broadcast(Object data) throws CommunicationException
     {
         SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
-        
-        //Encapsulate SeqMessage into a TypedMessage
-        TypedMessage mess = new TypedMessage(this.idService.getMyIdentifier(), seqMess, MessageType.RELIABLE_BROADCAST);
 
         synchronized(_history)
         {
             _history.add(seqMess);
         }
 
-        _basicBroadcaster.broadcast(mess);
+        _basicBroadcaster.broadcast(seqMess);
     }
 
     @Override

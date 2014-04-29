@@ -44,8 +44,6 @@ public class CausalReliableBroadcastService implements IService, IBroadcast
         _causalBuffer = new SynchronizedBuffer();
         
         _causalityManager = new CausalityManager(_localClock, _reliableBuffer, _causalBuffer);
-        
-        _setIdentificationService(reliableBroadcaster.getIdService());
     }
 
     @Override
@@ -64,31 +62,23 @@ public class CausalReliableBroadcastService implements IService, IBroadcast
         _causalityManager.quit();
     }
     
-    /**
-     * Avoids warning when public method used.
-     * @param idService 
-     */
-    private void _setIdentificationService(IIdentification idService)
+    @Override
+    public void setIdentificationService(IIdentification idService)
     {
         _idService = idService;
         _causalityManager.setProcessId(_idService.getMyIdentifier());
         
+        System.err.println(""+_idService.getMyIdentifier());
+        
         /* ****** Initialize clock ****** */
         // as we are not directly informed when the process id has been received, wait a short time
         // to be almost sure to have received it when printing the identifier
-        if(_idService.getAllIdentifiers() == null)
-            try { Thread.sleep(200); } catch(Exception e) { }
+        try { Thread.sleep(200); } catch(Exception e) { }
         
         for(ProcessIdentifier processId: _idService.getAllIdentifiers())
         {
             _localClock.addProcess(processId);
         }
-    }
-    
-    @Override
-    public void setIdentificationService(IIdentification idService)
-    {
-        _setIdentificationService(idService);
     }
     
     @Override

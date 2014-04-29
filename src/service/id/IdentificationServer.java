@@ -188,19 +188,12 @@ public class IdentificationServer extends Thread {
         }
     }
 
-    public IdentificationServer() throws CommunicationException {
+    public IdentificationServer() throws CommunicationException
+    {
         identifiers = new Vector<ProcessIdentifier>();
         commElt = new ReliableCommElt();
         this.start();
         (new PingManager(commElt)).start();
-    }
-
-    public static void main(String argv[]) {
-        try {
-            IdentificationServer server = new IdentificationServer();
-        } catch (CommunicationException ex) {
-            System.err.println("IdentificationServer.main: [ERROR] while launching identification server: " + ex);
-        }
     }
 
     /**

@@ -27,7 +27,7 @@ import service.id.IdentificationService;
  *
  * @author ninjatrappeur
  */
-public class TotalAtomicBroadcastService implements IService {
+public class TotalAtomicBroadcastService implements IService, IBroadcast {
 
     //Internals buffers
     //===============================
@@ -60,7 +60,6 @@ public class TotalAtomicBroadcastService implements IService {
         _ackBuffer = new SynchronizedBuffer();
         _getToken = false;
         _wantToSendStuff = false;
-        _idService = serv.getIdService();
         _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,
                 _tokenBuffer, _token, _isOn, _getToken, _wantToSendStuff, _reliableService, _idService);
     }
@@ -118,7 +117,12 @@ public class TotalAtomicBroadcastService implements IService {
         }
         _wantToSendStuff = false;
     }
-
+    
+    @Override
+    public void setIdentificationService(IIdentification idService)
+    {
+        _idService = idService;
+    }
     public Message synchDeliver() {
         return _outputBuffer.removeElement(true);
     }

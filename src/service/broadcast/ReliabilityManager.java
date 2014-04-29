@@ -9,11 +9,9 @@ package service.broadcast;
 import message.Message;
 import communication.SynchronizedBuffer;
 import java.util.ArrayList;
-import message.MessageType;
 import message.SeqMessage;
 import message.StampedMessage;
 import message.TotalAtomicMessage;
-import message.TypedMessage;
 
 /**
  *
@@ -70,6 +68,7 @@ import message.TypedMessage;
             while(_isOn)
             {
                 SeqMessage seqMess = fetchMessage();
+                System.err.println("RealiabilityManager::run : message received");
                 
                 synchronized(_history)
                 {
@@ -82,15 +81,19 @@ import message.TypedMessage;
                 {
                     try
                     {
-                        _basicBroadcaster.broadcast(new TypedMessage(seqMess.getProcessId(), seqMess, MessageType.RELIABLE_BROADCAST));
+                        _basicBroadcaster.broadcast(seqMess);
                         
                         Object encapsulated = seqMess.getData();
+                        
                         if(encapsulated instanceof StampedMessage)
                             _causalBuffer.addElement((StampedMessage)encapsulated);
+                        
                         else if(encapsulated instanceof TotalAtomicMessage)
                             _totalBuffer.addElement((TotalAtomicMessage)encapsulated);
-                        else if(encapsulated instanceof SeqMessage)
-                            _reliableBuffer.addElement(((SeqMessage)encapsulated).toMessage());
+                         
+                        // It is not an encapsulated message, but a raw
+                        else
+                            _reliableBuffer.addElement(seqMess.toMessage());
                     }
                     
                     catch(Exception e)
