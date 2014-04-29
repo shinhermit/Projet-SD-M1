@@ -76,7 +76,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
             //Si on ne l'as pas, on le demande et on l'attend.
             System.out.println("TOKEN: on n'a pas le token, on envoie une requête.");
             _reliableService.broadcast(
-                    new TotalAtomicMessage(_idService.getMyIdentifier(), _idService.getMyIdentifier(), "",
+                    new TotalAtomicMessage(_idService.getMyIdentifier(), _idService.getMyIdentifier(), "TOKEN_REQUEST",
                             TotalAtomicType.TOKEN_REQUEST));
             TotalAtomicMessage message;
             while (!_getToken) {
@@ -139,7 +139,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
         _idService = idService;
         _totalAtomicManager.setIdentificationService(idService);
         if (_idService.getAllIdentifiers().isEmpty()) {
-            System.out.println("TOKEN: on est le seul service à"
+            System.out.println("TOKEN: on est le seul service à "
                     + "tourner: on crée le token.");
             _token = new HashMap();
             _getToken = true;

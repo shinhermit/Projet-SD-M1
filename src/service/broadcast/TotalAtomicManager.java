@@ -63,7 +63,7 @@ public class TotalAtomicManager extends Thread{
                     try {
                         System.out.println("ACK: Message reçu, on envoie un ACK.");
                         _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(),
-                            message.getProcessIdSender(), "", TotalAtomicType.ACK));
+                            message.getProcessIdSender(), "ACK", TotalAtomicType.ACK));
                     } catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
                     _outputBuffer.addElement(new Message(message.getProcessIdSender(), message.getData()));
                     break;
