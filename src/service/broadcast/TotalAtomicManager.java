@@ -26,7 +26,7 @@ public class TotalAtomicManager extends Thread{
     private final SynchronizedBuffer<Message> _outputBuffer;
     private final HashMap<ProcessIdentifier, Integer> _request;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private final IIdentification _idServ;
+    private IIdentification _idServ;
     private final ReliableBroadcastService _reliableService;
     private final boolean _getToken;
     private final boolean _usingToken;
@@ -42,8 +42,7 @@ public class TotalAtomicManager extends Thread{
             boolean isOn,
             boolean getToken,
             boolean usingToken,
-            ReliableBroadcastService serv,
-            IIdentification idServ) {
+            ReliableBroadcastService serv) {
         _isOn = isOn;
         _getToken = getToken;
         _ackBuffer = ack;
@@ -54,7 +53,6 @@ public class TotalAtomicManager extends Thread{
         _inputBuffer = input;
         _outputBuffer = output;
         _usingToken = usingToken;
-        _idServ = idServ;
     }
     
     @Override
@@ -84,6 +82,7 @@ public class TotalAtomicManager extends Thread{
                 //Si c'est le cas on l'envoie. Sinon on incrémente les demandes.
                 case TOKEN_REQUEST:
                     System.out.println("TOKEN: Token request reçu de " + message.getProcessId());
+                    System.out.println(_getToken);
                     if(_request.containsKey(message.getProcessIdSender())) {
                         _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
                     } else {
@@ -91,6 +90,7 @@ public class TotalAtomicManager extends Thread{
                     }
                     if(_getToken && !_usingToken) {
                         try{
+                            System.out.println("On envoie le token à " + message.getProcessIdSender());
                             _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), message.getProcessIdSender(), _token, TotalAtomicType.TOKEN));
                         }
                         catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
@@ -102,7 +102,7 @@ public class TotalAtomicManager extends Thread{
                 //On fait passer l'acquittement au service (c'est lui qui se charge de les compter).    
                 case ACK:
                     System.out.println("ACK: ACK reçu de "+ message.getProcessIdSender());
-                    if(message.getProcessIdReceiver() == _idServ.getMyIdentifier())
+                    if(message.getProcessIdReceiver().getId() == _idServ.getMyIdentifier().getId())
                         _ackBuffer.addElement(message);
                     break;
                     
@@ -124,4 +124,8 @@ public class TotalAtomicManager extends Thread{
            
         return (TotalAtomicMessage) mess;
         }
+    
+    public void setIdentificationService(IIdentification serv) {
+        _idServ = serv;
+    }
 }
