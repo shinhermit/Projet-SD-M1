@@ -26,9 +26,15 @@ import message.TotalAtomicMessage;
         protected SynchronizedBuffer<TotalAtomicMessage> _totalBuffer;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
+        
         protected boolean _isOn;
         
-        public ReliabilityManager(BasicBroadcastService basicBroadcaster, SynchronizedBuffer<Message> serviceBuffer,
+        public ReliabilityManager()
+        {
+            _isOn = false;
+        }
+        
+        public void initialize(BasicBroadcastService basicBroadcaster, SynchronizedBuffer<Message> serviceBuffer,
                 SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer, 
                 SynchronizedBuffer<TotalAtomicMessage> totalBuffer, ArrayList<SeqMessage> history)
         {
@@ -38,14 +44,10 @@ import message.TotalAtomicMessage;
             _totalBuffer = totalBuffer;
             _basicBroadcaster = basicBroadcaster;
             _history = history;
-            
-            _isOn = true;
         }
         
         public SeqMessage fetchMessage()
         {
-            System.err.println("ReliabilityManager::fetchMessage : waiting for messages");
-            
             Message mess = _serviceBuffer.removeElement(true);
             Object data = mess.getData();
             
@@ -67,10 +69,10 @@ import message.TotalAtomicMessage;
         {
             boolean unknown;
             
+            _isOn = true;
             while(_isOn)
             {
                 SeqMessage seqMess = fetchMessage();
-                System.err.println("RealiabilityManager::run : message received");
                 
                 synchronized(_history)
                 {

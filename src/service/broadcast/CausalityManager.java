@@ -38,7 +38,7 @@ public class CausalityManager extends Thread
         _causalBuffer = causalBuffer;
         _localClock = localClock;
         
-        _isOn = true;
+        _isOn = false;
     }
 
     public void setProcessId(ProcessIdentifier myId)
@@ -118,6 +118,7 @@ public class CausalityManager extends Thread
     {
         DelayedMessage delayedMess;
         
+        _isOn = true;
         while(_isOn)
         {
             StampedMessage stampMess = fetchMessage();

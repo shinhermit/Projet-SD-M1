@@ -34,6 +34,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public ReliableBroadcastService()
     {
         _basicBroadcaster = new BasicBroadcastService();
+        _reliabilityManager = new ReliabilityManager();
         
         _reliableBuffer = new SynchronizedBuffer();
         _causalBuffer = new SynchronizedBuffer();
@@ -51,9 +52,10 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
     {
         super.initialize(dispatcher, commElt, myType);
-        _basicBroadcaster.initialize(this.dispatcher, this.commElt, this.myType);
+        //_basicBroadcaster.initialize(dispatcher, commElt, myType);
+        _basicBroadcaster.set(dispatcher, commElt, myType);
         
-        _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer,
+        _reliabilityManager.initialize(_basicBroadcaster, this.serviceBuffer,
                 _reliableBuffer, _causalBuffer, _totalBuffer, _history);
     }
     
@@ -79,7 +81,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, MessageType.RELIABLE_BROADCAST);
+        SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, this.myType);
 
         synchronized(_history)
         {
@@ -92,7 +94,6 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     @Override
     public Message synchDeliver()
     {
-        System.err.println("ReliableBroadcastService::synchDeliver : "+idService.getMyIdentifier()+" waiting for messages");
         return _reliableBuffer.removeElement(true);
     }
 
