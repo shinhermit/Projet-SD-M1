@@ -63,7 +63,7 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
     public void setIdentificationService(IIdentification idService)
     {
         _idService = idService;
-        _causalityManager.setProcessId(_idService.getMyIdentifier());
+        _causalityManager.setIdentification(_idService.getMyIdentifier(), idService);
         
         /* ****** Initialize clock ****** */
         // as we are not directly informed when the process id has been received, wait a short time
@@ -94,7 +94,6 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        System.err.println("CausalReliableBroadcastService::broadcast : sending");
         StampedMessage stampMess = new StampedMessage(_idService.getMyIdentifier(), data, _localClock);
         
         _reliableBroadcaster.broadcast(stampMess);

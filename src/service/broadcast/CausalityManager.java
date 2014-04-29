@@ -13,6 +13,7 @@ import message.DelayedMessage;
 import message.LogicalClock;
 import message.Message;
 import message.StampedMessage;
+import service.IIdentification;
 
 /**
  *
@@ -24,15 +25,15 @@ public class CausalityManager extends Thread
     protected SynchronizedBuffer<Message> _causalBuffer;
     protected ArrayList<DelayedMessage> _delayedMessages;
     protected LogicalClock _localClock;
+    protected IIdentification _idService;
     protected ProcessIdentifier _myId;
     
     protected boolean _isOn;
     
-    public CausalityManager(LogicalClock localClock,
-            SynchronizedBuffer<Message> reliableBuffer, SynchronizedBuffer<Message> causalBuffer)
+    public CausalityManager(LogicalClock localClock, SynchronizedBuffer<Message> reliableBuffer,
+            SynchronizedBuffer<Message> causalBuffer)
     {
         _delayedMessages = new ArrayList();
-        
         _reliableBuffer = reliableBuffer;
         _causalBuffer = causalBuffer;
         _localClock = localClock;
@@ -40,9 +41,10 @@ public class CausalityManager extends Thread
         _isOn = false;
     }
 
-    public void setProcessId(ProcessIdentifier myId)
+    public void setIdentification(ProcessIdentifier myId, IIdentification idService)
     {
         _myId = myId;
+        _idService = idService;
     }
 
     public StampedMessage fetchMessage()
@@ -57,23 +59,29 @@ public class CausalityManager extends Thread
         return (StampedMessage)mess;
     }
     
-    public DelayedMessage checkCausality(StampedMessage stampMess)
+    protected DelayedMessage _checkCausality(StampedMessage stampMess)
     {
         boolean first = true;
         DelayedMessage delayedMess = null;
         
         LogicalClock messClock = stampMess.getStamp();
         
+        // Unknow processes
         if(_localClock.size() != messClock.size())
-        {
-            throw new IllegalStateException("CausalityManager.checkCausality: the stamps don't have the same size (number of processes).\n\tSome processes may have crash.");
-        }
+            _updateLocalClock();
+        
+        // Check sizes again and send warning if local size still different from message size
+        if(_localClock.size() != messClock.size())
+            System.err.println("CausalityManager.checkCausality: the stamps don't have the same size (number of processes).\n\tSome processes may have crash.");
         
         for(ProcessIdentifier processId : messClock.getAllProcessId())
         {
             if(processId.getId() != _myId.getId())
             {
-                int nbToWait = messClock.getEventCounter(processId) - _localClock.getEventCounter(processId);
+                int nbToWait = 0;
+                Integer localCounter = _localClock.getEventCounter(processId);
+                if(localCounter != null)
+                    nbToWait = messClock.getEventCounter(processId) - localCounter;
 
                 if(nbToWait > 0)
                 {
@@ -91,7 +99,16 @@ public class CausalityManager extends Thread
         return delayedMess;
     }
     
-    public void updateWaitingList(ProcessIdentifier processId)
+    protected void _updateLocalClock()
+    {
+        for(ProcessIdentifier processId: _idService.getAllIdentifiers())
+        {
+            if(!_localClock.containsProcess(processId))
+                _localClock.addProcess(processId);
+        }
+    }
+    
+    protected void _updateWaitingList(ProcessIdentifier processId)
     {
         for(DelayedMessage delayedMess : _delayedMessages)
         {
@@ -123,7 +140,7 @@ public class CausalityManager extends Thread
             
             _localClock.newEvent(stampMess.getProcessId()); // Should this be done after delivery?
             
-            delayedMess = this.checkCausality(stampMess);
+            delayedMess = _checkCausality(stampMess);
             
             if(delayedMess != null)
             {
@@ -133,7 +150,7 @@ public class CausalityManager extends Thread
             else
             {
                 _causalBuffer.addElement(stampMess.toMessage());
-                this.updateWaitingList(stampMess.getProcessId());
+                _updateWaitingList(stampMess.getProcessId());
             }
         }
     }
