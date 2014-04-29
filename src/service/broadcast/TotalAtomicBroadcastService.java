@@ -61,19 +61,11 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
         _getToken = false;
         _usingToken = false;
         _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer, _outputBuffer,
-                _tokenBuffer, _requests, _token, _isOn, _getToken, _usingToken, _reliableService, _idService);
+                _tokenBuffer, _requests, _token, _isOn, _getToken, _usingToken, _reliableService);
     }
 
     @Override
     public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {
-        //Si on est le seul service à tourner, on doit créer le token.
-        while(_idService.getAllIdentifiers() == null) {}        
-        if(_idService.getAllIdentifiers().isEmpty()) {
-            System.out.println("TOKEN: on est le seul service à" +
-                    "tourner: on crée le token.");
-            _token = new HashMap();
-            _getToken = true;
-        }
     }
 
     @Override
@@ -134,6 +126,16 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     public void setIdentificationService(IIdentification idService)
     {
         _idService = idService;
+        _totalAtomicManager.setIdentification(idService);
+        
+        //Si on est le seul service à tourner, on doit créer le token.
+        while(_idService.getAllIdentifiers() == null) {}
+        if(_idService.getAllIdentifiers().isEmpty()) {
+            System.out.println("TOKEN: on est le seul service à" +
+                    "tourner: on crée le token.");
+            _token = new HashMap();
+            _getToken = true;
+        }
     }
     
     @Override

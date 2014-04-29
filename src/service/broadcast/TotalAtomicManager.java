@@ -26,7 +26,7 @@ public class TotalAtomicManager extends Thread{
     private final SynchronizedBuffer<Message> _outputBuffer;
     private final HashMap<ProcessIdentifier, Integer> _request;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private final IIdentification _idServ;
+    private  IIdentification _idServ;
     private final ReliableBroadcastService _reliableService;
     private final boolean _getToken;
     private final boolean _usingToken;
@@ -42,8 +42,7 @@ public class TotalAtomicManager extends Thread{
             boolean isOn,
             boolean getToken,
             boolean usingToken,
-            ReliableBroadcastService serv,
-            IIdentification idServ) {
+            ReliableBroadcastService serv) {
         _isOn = isOn;
         _getToken = getToken;
         _ackBuffer = ack;
@@ -54,7 +53,6 @@ public class TotalAtomicManager extends Thread{
         _inputBuffer = input;
         _outputBuffer = output;
         _usingToken = usingToken;
-        _idServ = idServ;
     }
     
     @Override
@@ -124,4 +122,9 @@ public class TotalAtomicManager extends Thread{
            
         return (TotalAtomicMessage) mess;
         }
+
+    public void setIdentification(IIdentification idService)
+    {
+        _idServ = idService;
+    }
 }
