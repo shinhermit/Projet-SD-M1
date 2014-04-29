@@ -28,7 +28,7 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
     protected IIdentification idService;
     
     protected ReliableBroadcastService _reliableBroadcaster;
-    protected SynchronizedBuffer<Message> _reliableBuffer;
+    protected SynchronizedBuffer<Message> _inputBuffer;
     protected IIdentification _idService;
     
     protected CausalityManager _causalityManager;
@@ -37,13 +37,12 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
 
     public CausalReliableBroadcastService(ReliableBroadcastService reliableBroadcaster)
     {
-        _localClock = new LogicalClock();
-        
         _reliableBroadcaster = reliableBroadcaster;
-        _reliableBuffer = reliableBroadcaster.getCausalBuffer();
-        _causalBuffer = new SynchronizedBuffer();
+        _inputBuffer = reliableBroadcaster.getCausalBuffer();
         
-        _causalityManager = new CausalityManager(_localClock, _reliableBuffer, _causalBuffer);
+        _localClock = new LogicalClock();
+        _causalBuffer = new SynchronizedBuffer();
+        _causalityManager = new CausalityManager(_localClock, _inputBuffer, _causalBuffer);
     }
 
     @Override
@@ -68,8 +67,6 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
         _idService = idService;
         _causalityManager.setProcessId(_idService.getMyIdentifier());
         
-        System.err.println(""+_idService.getMyIdentifier());
-        
         /* ****** Initialize clock ****** */
         // as we are not directly informed when the process id has been received, wait a short time
         // to be almost sure to have received it when printing the identifier
@@ -79,6 +76,9 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
         {
             _localClock.addProcess(processId);
         }
+        
+        // Own id is not in _idService.getAllIdentifiers()...
+        _localClock.addProcess(_idService.getMyIdentifier());
     }
     
     @Override

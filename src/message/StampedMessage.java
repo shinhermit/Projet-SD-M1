@@ -74,4 +74,9 @@ public class StampedMessage extends Message
     {
         return "[ " + processId + ", Stamp: "+_stamp+" ] -> " + data;
     }
+    
+    public Message toMessage()
+    {
+        return new Message(this.processId, this.data);
+    }
 }

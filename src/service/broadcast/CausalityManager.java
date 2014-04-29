@@ -68,12 +68,12 @@ public class CausalityManager extends Thread
         
         if(_localClock.size() != messClock.size())
         {
-            throw new IllegalStateException("CausalityManager.checkCausality: the stamps don't have the same size");
+            throw new IllegalStateException("CausalityManager.checkCausality: the stamps don't have the same size (number of processes).\n\tSome processes may have crash.");
         }
         
         for(ProcessIdentifier processId : messClock.getAllProcessId())
         {
-            if(processId != _myId)
+            if(processId.getId() != _myId.getId())
             {
                 int nbToWait = messClock.getEventCounter(processId) - _localClock.getEventCounter(processId);
 
@@ -101,8 +101,8 @@ public class CausalityManager extends Thread
             
             if(delayedMess.isReady())
             {
-                //Add id back to serviceBuffer, so it will be processed by this method again
-                _reliableBuffer.addElement(delayedMess.getStampesMessage());
+                //Add id back to reliableBuffer, so it will be processed by fetchMessage again
+                _reliableBuffer.addElement(delayedMess.getStampedMessage());
                 _delayedMessages.remove(delayedMess); // Is it safe to continue iterating the list?
             }
         }
@@ -134,14 +134,7 @@ public class CausalityManager extends Thread
             
             else
             {
-                Object data = stampMess.getData();
-                
-                if(! (data instanceof SeqMessage) )
-                {
-                    throw new IllegalStateException("CausalityManager.run: messages inside StampedMessage should be SeqMessage.\n\t found "+data.getClass().getName());
-                }
-                
-                _causalBuffer.addElement((SeqMessage)data);
+                _causalBuffer.addElement(stampMess.toMessage());
                 this.updateWaitingList(stampMess.getProcessId());
             }
         }

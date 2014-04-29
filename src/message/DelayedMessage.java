@@ -64,7 +64,7 @@ public class DelayedMessage
         return counter;
     }
     
-    public StampedMessage getStampesMessage()
+    public StampedMessage getStampedMessage()
     {
         return _mess;
     }

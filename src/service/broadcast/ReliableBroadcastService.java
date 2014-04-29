@@ -22,6 +22,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     protected BasicBroadcastService _basicBroadcaster;
     protected ReliabilityManager _reliabilityManager;
     protected ArrayList<SeqMessage> _history;
+    public final Object historyLock = new Object();
 
     /**
      * Buffer containing the filtered received messages.
@@ -34,7 +35,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public ReliableBroadcastService()
     {
         _basicBroadcaster = new BasicBroadcastService();
-        _reliabilityManager = new ReliabilityManager();
+        _reliabilityManager = new ReliabilityManager(historyLock);
         
         _reliableBuffer = new SynchronizedBuffer();
         _causalBuffer = new SynchronizedBuffer();
@@ -83,7 +84,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     {
         SeqMessage seqMess = new SeqMessage(this.idService.getMyIdentifier(), data, this.myType);
 
-        synchronized(_history)
+        synchronized(historyLock)
         {
             _history.add(seqMess);
         }

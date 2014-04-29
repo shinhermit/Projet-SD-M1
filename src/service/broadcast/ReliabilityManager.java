@@ -27,10 +27,13 @@ import message.TotalAtomicMessage;
         protected BasicBroadcastService _basicBroadcaster;
         protected ArrayList<SeqMessage> _history;
         
+        protected final Object _historyLock;
+        
         protected boolean _isOn;
         
-        public ReliabilityManager()
+        public ReliabilityManager(Object historyLock)
         {
+            _historyLock = historyLock;
             _isOn = false;
         }
         
@@ -74,7 +77,7 @@ import message.TotalAtomicMessage;
             {
                 SeqMessage seqMess = fetchMessage();
                 
-                synchronized(_history)
+                synchronized(_historyLock)
                 {
                     unknown = !_history.contains(seqMess);
                     if(unknown)
