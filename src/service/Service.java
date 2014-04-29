@@ -65,4 +65,48 @@ public abstract class Service implements IService
 
     @Override
     public void terminateManagers(){}
+    
+    @Override
+    public void setServiceBuffer(SynchronizedBuffer<Message> serviceBuffer)
+    {
+        this.serviceBuffer = serviceBuffer;
+    }
+    
+    @Override
+    public void setDispatcher(MessageDispatcher dispatcher)
+    {
+        this.dispatcher = dispatcher;
+    }
+   
+    @Override
+    public void setComElt(ICommunication commElt)
+    {
+        this.commElt = commElt;
+    }
+    
+    @Override
+    public void set(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
+    {
+        this.dispatcher = dispatcher;
+        this.commElt = commElt;
+        this.myType = myType;
+    }
+    
+    @Override
+    public SynchronizedBuffer<Message> getServiceBuffer()
+    {
+        return serviceBuffer;
+    }
+    
+    @Override
+    public MessageDispatcher getDispatcher()
+    {
+        return this.dispatcher;
+    }
+   
+    @Override
+    public ICommunication getComElt()
+    {
+        return this.commElt;
+    }
 }

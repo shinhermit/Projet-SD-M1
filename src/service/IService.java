@@ -6,6 +6,8 @@
 
 package service;
 
+import communication.SynchronizedBuffer;
+import message.Message;
 import message.MessageType;
 
 /**
@@ -32,5 +34,48 @@ public interface IService
     * Termiantes all subservice managers (private buffers managers)
     */
    public void terminateManagers();
-    
+   
+   /**
+    * Allows to change service buffer.
+    * @param serviceBuffer the new service buffer
+    */
+   public void setServiceBuffer(SynchronizedBuffer<Message> serviceBuffer);
+   
+   /**
+    * Allows to change the dispatcher.
+    * @param dispatcher the new service dispatcher
+    */
+   public void setDispatcher(MessageDispatcher dispatcher);
+   
+   /**
+    * Allows to change the communication module.
+    * @param commElt the new communication element.
+    */
+   public void setComElt(ICommunication commElt);
+   
+   /**
+    * Resets all the properties
+    * @param dispatcher
+    * @param commElt
+    * @param myType 
+    */
+   public void set(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType);
+   
+   /**
+    *  gets the service buffer for this service
+    * @return the service buffer
+    */
+   public SynchronizedBuffer<Message> getServiceBuffer();
+   
+   /**
+    * gets the dispatcher for this service
+    * @return the dispatcher
+    */
+   public MessageDispatcher getDispatcher();
+   
+   /**
+    * gets the communication element for this service
+    * @return the communication element
+    */
+   public ICommunication getComElt();
 }

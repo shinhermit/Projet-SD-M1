@@ -8,7 +8,6 @@ import message.Message;
 import communication.ProcessIdentifier;
 import java.util.Iterator;
 import service.IIdentification;
-import message.MessageType;
 import service.Service;
 import message.TypedMessage;
 import service.IBroadcast;
@@ -46,7 +45,7 @@ public class BasicBroadcastService extends Service implements IBroadcast
                 // simulate the crash of the process during the broadcast
                 commElt.crashProcess();
                 
-                commElt.sendMessage(new TypedMessage(id, data, MessageType.BASIC_BROADCAST));
+                commElt.sendMessage(new TypedMessage(id, data, this.myType));
             }
             catch (CommunicationException e)
             {

@@ -44,12 +44,14 @@ import message.TotalAtomicMessage;
         
         public SeqMessage fetchMessage()
         {
+            System.err.println("ReliabilityManager::fetchMessage : waiting for messages");
+            
             Message mess = _serviceBuffer.removeElement(true);
             Object data = mess.getData();
             
             if(! (data instanceof SeqMessage) )
             {
-                throw new IllegalStateException("ReliabilityManager.fetchMessage: messages in reliable mode should be of type SeqMessage.\n\t found "+data.getClass().getName());
+                throw new IllegalStateException("ReliabilityManager::fetchMessage: messages in reliable mode should be of type SeqMessage.\n\t found "+data.getClass().getName());
             }
             
             return (SeqMessage)data;

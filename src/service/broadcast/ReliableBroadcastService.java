@@ -9,7 +9,6 @@ import message.Message;
 import message.MessageType;
 import message.SeqMessage;
 import message.TotalAtomicMessage;
-import message.TypedMessage;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
@@ -35,6 +34,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public ReliableBroadcastService()
     {
         _basicBroadcaster = new BasicBroadcastService();
+        
         _reliableBuffer = new SynchronizedBuffer();
         _causalBuffer = new SynchronizedBuffer();
         _totalBuffer = new SynchronizedBuffer();
@@ -51,10 +51,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     public void initialize(MessageDispatcher dispatcher, ICommunication commElt, MessageType myType)
     {
         super.initialize(dispatcher, commElt, myType);
-        _basicBroadcaster.initialize(dispatcher, commElt, myType);
-        
-        // Est-ce utile ? pas déjà pris en charge par le super.initialize ?
-//        serviceBuffer = dispatcher.associateService(myType);
+        _basicBroadcaster.initialize(this.dispatcher, this.commElt, this.myType);
         
         _reliabilityManager = new ReliabilityManager(_basicBroadcaster, serviceBuffer,
                 _reliableBuffer, _causalBuffer, _totalBuffer, _history);
@@ -95,6 +92,7 @@ public class ReliableBroadcastService  extends Service implements IBroadcast
     @Override
     public Message synchDeliver()
     {
+        System.err.println("ReliableBroadcastService::synchDeliver : "+idService.getMyIdentifier()+" waiting for messages");
         return _reliableBuffer.removeElement(true);
     }
 

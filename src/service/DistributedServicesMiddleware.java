@@ -152,6 +152,7 @@ public class DistributedServicesMiddleware implements IDistributedServices
         
         _services.put(ServiceSet.Identification, new IdentificationService());
         _services.put(ServiceSet.Communication, new ProxyCommunication());
+        
         _services.put(ServiceSet.BasicBroadcast, new BasicBroadcastService());
         
         ReliableBroadcastService reliableService = new ReliableBroadcastService();

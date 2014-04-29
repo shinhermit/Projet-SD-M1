@@ -8,7 +8,6 @@ package service.broadcast;
 import communication.CommunicationException;
 import communication.ProcessIdentifier;
 import communication.SynchronizedBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import message.Message;
@@ -18,16 +17,14 @@ import message.TotalAtomicType;
 import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
-import service.IService;
 import service.MessageDispatcher;
 import service.Service;
-import service.id.IdentificationService;
 
 /**
  *
  * @author ninjatrappeur
  */
-public class TotalAtomicBroadcastService implements IService, IBroadcast {
+public class TotalAtomicBroadcastService extends Service implements IBroadcast {
 
     //Internals buffers
     //===============================

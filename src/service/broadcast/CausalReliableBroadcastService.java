@@ -17,13 +17,13 @@ import service.IBroadcast;
 import service.ICommunication;
 import service.IIdentification;
 import service.MessageDispatcher;
-import service.IService;
+import service.Service;
 
 /**
  *
  * @author josuah
  */
-public class CausalReliableBroadcastService implements IService, IBroadcast
+public class CausalReliableBroadcastService extends Service implements IBroadcast
 {
     protected IIdentification idService;
     
