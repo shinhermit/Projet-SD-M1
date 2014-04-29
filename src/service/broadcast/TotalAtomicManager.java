@@ -27,8 +27,6 @@ public class TotalAtomicManager extends Thread{
     private final HashMap<ProcessIdentifier, Integer> _request;
     private IIdentification _idServ;
     private final ReliableBroadcastService _reliableService;
-    private boolean _getToken;
-    private boolean _usingToken;
     private boolean _isOn;
     private final TotalAtomicBroadcastService _broadcastService;
     
@@ -82,7 +80,7 @@ public class TotalAtomicManager extends Thread{
                     } else {
                         _request.put(message.getProcessIdSender(), 1);
                     }
-                    if(_getToken && !_usingToken) {
+                    if(_broadcastService.getTokenState() && !_broadcastService.getTokenUsage()) {
                         try{
                             System.out.println("TOKEN: On envoie le token à " + message.getProcessIdSender());
                             _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), 
@@ -128,13 +126,5 @@ public class TotalAtomicManager extends Thread{
     
     public void terminate () {
         _isOn = false;
-    }
-    
-    public void setToken(boolean token) {
-        _getToken = token;
-    }
-    
-    public void setUsageToken(boolean usage) {
-        _usingToken = usage;
     }
 }

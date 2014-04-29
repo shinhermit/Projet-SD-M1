@@ -71,7 +71,6 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     public void broadcast(Object data) throws CommunicationException {
         //On s'assure que l'on a le token
         _usingToken = true;
-        _totalAtomicManager.setUsageToken(true);
         if (!_getToken) {
             //Si on ne l'as pas, on le demande et on l'attend.
             System.out.println("TOKEN: on n'a pas le token, on envoie une requête.");
@@ -84,7 +83,6 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                 if (message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
                     _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                     _getToken = true;
-                    _totalAtomicManager.setToken(true);
                 }
             }
         }
@@ -126,12 +124,10 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                             new TotalAtomicMessage(_idService.getMyIdentifier(),
                                     id, _token, TotalAtomicType.TOKEN));
                     _getToken = false;
-                    _totalAtomicManager.setToken(false);
                 }
             }
         }
         _usingToken = false;
-        _totalAtomicManager.setUsageToken(false);
     }
 
     @Override
@@ -143,7 +139,6 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                     + "tourner: on crée le token.");
             _token = new HashMap();
             _getToken = true;
-            _totalAtomicManager.setToken(true);
         }
     }
 
@@ -182,5 +177,13 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     
     public void setToken(HashMap<ProcessIdentifier, Integer> token) {
         _token = token;
+    }
+    
+    public boolean getTokenState() {
+        return _getToken;
+    }
+    
+    public boolean getTokenUsage() {
+        return _usingToken;
     }
 }
