@@ -26,11 +26,12 @@ public class TotalAtomicManager extends Thread{
     private final SynchronizedBuffer<Message> _outputBuffer;
     private final HashMap<ProcessIdentifier, Integer> _request;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private final IIdentification _idServ;
+    private IIdentification _idServ;
     private final ReliableBroadcastService _reliableService;
-    private final boolean _getToken;
-    private final boolean _usingToken;
-    private final boolean _isOn;
+    private boolean _getToken;
+    private boolean _usingToken;
+    private boolean _isOn;
+    private final TotalAtomicBroadcastService _broadcastService;
     
     public TotalAtomicManager (
             SynchronizedBuffer<TotalAtomicMessage> ack,
@@ -39,13 +40,8 @@ public class TotalAtomicManager extends Thread{
             SynchronizedBuffer<TotalAtomicMessage> tokenBuffer,
             HashMap<ProcessIdentifier, Integer> requests,
             HashMap<ProcessIdentifier, Integer> token,
-            boolean isOn,
-            boolean getToken,
-            boolean usingToken,
             ReliableBroadcastService serv,
-            IIdentification idServ) {
-        _isOn = isOn;
-        _getToken = getToken;
+            TotalAtomicBroadcastService bs) {
         _ackBuffer = ack;
         _tokenBuffer = tokenBuffer;
         _request = requests;
@@ -53,18 +49,19 @@ public class TotalAtomicManager extends Thread{
         _reliableService = serv;
         _inputBuffer = input;
         _outputBuffer = output;
-        _usingToken = usingToken;
-        _idServ = idServ;
+        _isOn = true;
+        _broadcastService = bs;
     }
     
     @Override
     public void run() {
-        while(true) {
+        while(_isOn) {
             TotalAtomicMessage message = fetchMessage();
             switch(message.getType()) {
                 //Si on reçoit du payload, on envoie un acquittement et on fait passer dans le buffer sortie.
                 case PAYLOAD :
                     try {
+                        System.out.println("ACK: Message reçu, on envoie un ACK.");
                         _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(),
                             message.getProcessIdSender(), "", TotalAtomicType.ACK));
                     } catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
@@ -91,7 +88,9 @@ public class TotalAtomicManager extends Thread{
                     }
                     if(_getToken && !_usingToken) {
                         try{
+                            System.out.println("TOKEN: On envoie le token à " + message.getProcessIdSender());
                             _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), message.getProcessIdSender(), _token, TotalAtomicType.TOKEN));
+                            _broadcastService.setTokenState(false);
                         }
                         catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}
                     } else {
@@ -102,7 +101,7 @@ public class TotalAtomicManager extends Thread{
                 //On fait passer l'acquittement au service (c'est lui qui se charge de les compter).    
                 case ACK:
                     System.out.println("ACK: ACK reçu de "+ message.getProcessIdSender());
-                    if(message.getProcessIdReceiver() == _idServ.getMyIdentifier())
+                    if(message.getProcessIdReceiver().getId() == _idServ.getMyIdentifier().getId())
                         _ackBuffer.addElement(message);
                     break;
                     
@@ -124,4 +123,20 @@ public class TotalAtomicManager extends Thread{
            
         return (TotalAtomicMessage) mess;
         }
+    
+    public void setIdentificationService(IIdentification serv) {
+        _idServ = serv;
+    }
+    
+    public void terminate () {
+        _isOn = false;
+    }
+    
+    public void setToken(boolean token) {
+        _getToken = token;
+    }
+    
+    public void setUsageToken(boolean usage) {
+        _usingToken = usage;
+    }
 }
