@@ -25,7 +25,6 @@ public class TotalAtomicManager extends Thread{
     private final SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
     private final SynchronizedBuffer<Message> _outputBuffer;
     private final HashMap<ProcessIdentifier, Integer> _request;
-    private HashMap<ProcessIdentifier, Integer> _token;
     private IIdentification _idServ;
     private final ReliableBroadcastService _reliableService;
     private boolean _getToken;
@@ -39,13 +38,11 @@ public class TotalAtomicManager extends Thread{
             SynchronizedBuffer<Message> output,
             SynchronizedBuffer<TotalAtomicMessage> tokenBuffer,
             HashMap<ProcessIdentifier, Integer> requests,
-            HashMap<ProcessIdentifier, Integer> token,
             ReliableBroadcastService serv,
             TotalAtomicBroadcastService bs) {
         _ackBuffer = ack;
         _tokenBuffer = tokenBuffer;
         _request = requests;
-        _token = token;
         _reliableService = serv;
         _inputBuffer = input;
         _outputBuffer = output;
@@ -72,7 +69,6 @@ public class TotalAtomicManager extends Thread{
                 case TOKEN :
                     System.out.println("TOKEN: token reçu de "+ message.getProcessIdSender());
                     if(message.getProcessIdReceiver().equals(_idServ.getMyIdentifier())) {
-                        _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                         _tokenBuffer.addElement(message);
                     }
                     break;
@@ -89,7 +85,9 @@ public class TotalAtomicManager extends Thread{
                     if(_getToken && !_usingToken) {
                         try{
                             System.out.println("TOKEN: On envoie le token à " + message.getProcessIdSender());
-                            _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), message.getProcessIdSender(), _token, TotalAtomicType.TOKEN));
+                            _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), 
+                                    message.getProcessIdSender(), _broadcastService.getToken(),
+                                    TotalAtomicType.TOKEN));
                             _broadcastService.setTokenState(false);
                         }
                         catch(CommunicationException c) {System.err.println("Impossible d'envoyer un message TotalAtomicManager.run " + c);}

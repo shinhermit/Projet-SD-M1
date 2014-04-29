@@ -60,7 +60,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
         _usingToken = false;
         _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer, _outputBuffer,
                 _tokenBuffer, _requests, 
-                _token, _reliableService, this);
+                _reliableService, this);
     }
 
     @Override
@@ -174,5 +174,13 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     
     public void setTokenState(boolean state) {
         _getToken = state;
+    }
+    
+    public HashMap<ProcessIdentifier, Integer> getToken () {
+        return _token;
+    }
+    
+    public void setToken(HashMap<ProcessIdentifier, Integer> token) {
+        _token = token;
     }
 }
