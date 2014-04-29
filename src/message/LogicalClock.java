@@ -34,6 +34,11 @@ public class LogicalClock implements Serializable
         _clock.put(process, initialCounter);
     }
     
+    public boolean containsProcess(ProcessIdentifier process)
+    {
+        return _clock.containsKey(process);
+    }
+    
     public int size()
     {
         return _clock.size();
