@@ -31,7 +31,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     private final SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
     //Output buffer
     //==============================
-    private final  SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
+    private final  SynchronizedBuffer<Message> _outputBuffer;
     //Input Buffer: not clean, for manager thread use only!!!!!
     //==============================
     private final SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
@@ -42,8 +42,8 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     private final ReliableBroadcastService _reliableService;
     private IIdentification _idService;
     private boolean _getToken;
-    private boolean _wantToSendStuff;
-    private HashMap<ProcessIdentifier, Integer> _requests;
+    private boolean _usingToken;
+    private final HashMap<ProcessIdentifier, Integer> _requests;
     private HashMap<ProcessIdentifier, Integer> _token;
     private boolean _isOn;
     //Private thread who read input buffer
@@ -53,22 +53,33 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     public TotalAtomicBroadcastService(ReliableBroadcastService serv) {
         _reliableService = serv;
         _inputBuffer = serv.getTotalBuffer();
+        _idService = serv.getIdService();
         _outputBuffer = new SynchronizedBuffer();
         _ackBuffer = new SynchronizedBuffer();
         _tokenBuffer = new SynchronizedBuffer();
+        _requests = new HashMap();
         _getToken = false;
-        _wantToSendStuff = false;
-        _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,
-                _tokenBuffer, _token, _isOn, _getToken, _wantToSendStuff, _reliableService, _idService);
+        _usingToken = false;
+        _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer, _outputBuffer,
+                _tokenBuffer, _requests, _token, _isOn, _getToken, _usingToken, _reliableService, _idService);
     }
 
     @Override
-    public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {}
+    public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {
+        //Si on est le seul service à tourner, on doit créer le token.
+        while(_idService.getAllIdentifiers() == null) {}        
+        if(_idService.getAllIdentifiers().isEmpty()) {
+            System.out.println("TOKEN: on est le seul service à" +
+                    "tourner: on crée le token.");
+            _token = new HashMap();
+            _getToken = true;
+        }
+    }
 
     @Override
     public void broadcast(Object data) throws CommunicationException {
         //On s'assure que l'on a le token
-        _wantToSendStuff = true;
+        _usingToken = true;
         if (!_getToken) {
             //Si on ne l'as pas, on le demande et on l'attend.
             System.out.println("TOKEN: on n'a pas le token, on envoie une requête.");
@@ -116,7 +127,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                 _getToken = false;
             }
         }
-        _wantToSendStuff = false;
+        _usingToken = false;
     }
     
     @Override
