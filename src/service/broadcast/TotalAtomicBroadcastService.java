@@ -45,7 +45,6 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     private boolean _usingToken;
     private final HashMap<ProcessIdentifier, Integer> _requests;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private boolean _isOn;
     //Private thread who read input buffer
     //=======================================
     private final TotalAtomicManager _totalAtomicManager;
@@ -60,16 +59,19 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
         _getToken = false;
         _usingToken = false;
         _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer, _outputBuffer,
-                _tokenBuffer, _requests, _token, _isOn, _getToken, _usingToken, _reliableService);
+                _tokenBuffer, _requests, 
+                _token, _reliableService, this);
     }
 
     @Override
-    public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {}
+    public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {
+    }
 
     @Override
     public void broadcast(Object data) throws CommunicationException {
         //On s'assure que l'on a le token
         _usingToken = true;
+        _totalAtomicManager.setUsageToken(true);
         if (!_getToken) {
             //Si on ne l'as pas, on le demande et on l'attend.
             System.out.println("TOKEN: on n'a pas le token, on envoie une requête.");
@@ -82,6 +84,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                 if (message.getProcessIdReceiver().equals(_idService.getMyIdentifier())) {
                     _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                     _getToken = true;
+                    _totalAtomicManager.setToken(true);
                 }
             }
         }
@@ -108,19 +111,27 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
 
         //On regarde si des gens attendent le token.
         for (ProcessIdentifier id : _requests.keySet()) {
-            if (_requests.get(id) > _token.get(id) && _getToken) {
-                //Quelqu'un attend le token, on met à jour notre case et on 
-                //l'envoie.
-                System.out.println("TOKEN: on passe le token à " + id);
-                ProcessIdentifier myId = _idService.getMyIdentifier();
-                _token.put(myId, _token.get(myId) + 1);
-                _reliableService.broadcast(
-                        new TotalAtomicMessage(_idService.getMyIdentifier(),
-                                id, _token, TotalAtomicType.TOKEN));
-                _getToken = false;
+            if (_token.containsKey(id)) {
+                if (_requests.get(id) > _token.get(id) && _getToken) {
+                    //Quelqu'un attend le token, on met à jour notre case et on 
+                    //l'envoie.
+                    System.out.println("TOKEN: on passe le token à " + id);
+                    ProcessIdentifier myId = _idService.getMyIdentifier();
+                    if (_token.containsKey(myId)) {
+                        _token.put(myId, _token.get(myId) + 1);
+                    } else {
+                        _token.put(myId, 1);
+                    }
+                    _reliableService.broadcast(
+                            new TotalAtomicMessage(_idService.getMyIdentifier(),
+                                    id, _token, TotalAtomicType.TOKEN));
+                    _getToken = false;
+                    _totalAtomicManager.setToken(false);
+                }
             }
         }
         _usingToken = false;
+        _totalAtomicManager.setUsageToken(false);
     }
 
     @Override
@@ -132,6 +143,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
                     + "tourner: on crée le token.");
             _token = new HashMap();
             _getToken = true;
+            _totalAtomicManager.setToken(true);
         }
     }
 
@@ -157,6 +169,10 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
 
     @Override
     public void terminateManagers() {
-        _isOn = false;
+        _totalAtomicManager.terminate();
+    }
+    
+    public void setTokenState(boolean state) {
+        _getToken = state;
     }
 }
