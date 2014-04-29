@@ -66,7 +66,7 @@ public class SeqMessage extends TypedMessage
             {
                 SeqMessage messOther = (SeqMessage)other;
                 
-                eq = (super.equals(messOther) && this.getSequenceNumber().equals(messOther.getSequenceNumber()));
+                eq = this.getSequenceNumber().equals(messOther.getSequenceNumber());
             }
         }
         
