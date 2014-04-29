@@ -7,6 +7,7 @@
 package message;
 
 import communication.ProcessIdentifier;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import java.util.Set;
  *
  * @author josuah
  */
-public class LogicalClock
+public class LogicalClock implements Serializable
 {
     private HashMap<ProcessIdentifier, Integer> _clock;
     

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import message.DelayedMessage;
 import message.LogicalClock;
 import message.Message;
-import message.SeqMessage;
 import message.StampedMessage;
 
 /**
@@ -49,14 +48,13 @@ public class CausalityManager extends Thread
     public StampedMessage fetchMessage()
     {
         Message mess = _reliableBuffer.removeElement(true);
-        Object data = mess.getData();
 
-        if(! (data instanceof StampedMessage) )
+        if(! (mess instanceof StampedMessage) )
         {
-            throw new IllegalStateException("CausalityManager.fetchMessage: messages in causal mode should be of type StampedMessage.\n\t found "+data.getClass().getName());
+            throw new IllegalStateException("CausalityManager.fetchMessage: messages in causal mode should be of type StampedMessage.\n\t found "+mess.getClass().getName());
         }
 
-        return (StampedMessage)data;
+        return (StampedMessage)mess;
     }
     
     public DelayedMessage checkCausality(StampedMessage stampMess)

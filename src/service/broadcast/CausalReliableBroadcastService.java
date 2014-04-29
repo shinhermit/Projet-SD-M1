@@ -25,8 +25,6 @@ import service.Service;
  */
 public class CausalReliableBroadcastService extends Service implements IBroadcast
 {
-    protected IIdentification idService;
-    
     protected ReliableBroadcastService _reliableBroadcaster;
     protected SynchronizedBuffer<Message> _inputBuffer;
     protected IIdentification _idService;
@@ -96,7 +94,8 @@ public class CausalReliableBroadcastService extends Service implements IBroadcas
     @Override
     public void broadcast(Object data) throws CommunicationException
     {
-        StampedMessage stampMess = new StampedMessage(this.idService.getMyIdentifier(), data, _localClock);
+        System.err.println("CausalReliableBroadcastService::broadcast : sending");
+        StampedMessage stampMess = new StampedMessage(_idService.getMyIdentifier(), data, _localClock);
         
         _reliableBroadcaster.broadcast(stampMess);
     }
