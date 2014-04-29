@@ -42,8 +42,12 @@ public class IdentificationService extends Service implements IIdentification, R
         return ((CommunicationElement) commElt).getMyPid();
     }
 
-    public Vector<ProcessIdentifier> getAllIdentifiers() {
-        return (Vector<ProcessIdentifier>)identifiers.clone();
+    public Vector<ProcessIdentifier> getAllIdentifiers()
+    {
+        if(identifiers != null)
+            return (Vector<ProcessIdentifier>)identifiers.clone();
+        else
+            return null;
     }
 
     public void leaveSystem() {

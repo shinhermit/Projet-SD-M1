@@ -119,6 +119,7 @@ public class CausalityManager extends Thread
                 //Add id back to reliableBuffer, so it will be processed by fetchMessage again
                 _reliableBuffer.addElement(delayedMess.getStampedMessage());
                 _delayedMessages.remove(delayedMess); // Is it safe to continue iterating the list?
+                System.err.println("CausalityManager::_updateWaitingList : requeued previously delayed message "+delayedMess.toString());
             }
         }
     }
@@ -137,13 +138,17 @@ public class CausalityManager extends Thread
         while(_isOn)
         {
             StampedMessage stampMess = fetchMessage();
+            System.err.println("CausalityManager::run : received message with stamp "+stampMess.getStamp().toString());
+            System.err.println("CausalityManager::run : local clock is "+_localClock.toString());
             
             _localClock.newEvent(stampMess.getProcessId()); // Should this be done after delivery?
+            System.err.println("CausalityManager::run : local clock updated to "+_localClock.toString());
             
             delayedMess = _checkCausality(stampMess);
             
             if(delayedMess != null)
             {
+                System.err.println("CausalityManager::run : delaying message "+delayedMess.toString());
                 _delayedMessages.add(delayedMess);
             }
             
