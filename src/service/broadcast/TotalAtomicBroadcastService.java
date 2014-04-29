@@ -28,18 +28,18 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
 
     //Internals buffers
     //===============================
-    private SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
     //Output buffer
     //==============================
-    private SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
+    private final  SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
     //Input Buffer: not clean, for manager thread use only!!!!!
     //==============================
-    private SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
-    private SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
 
     //Internal stuff
     //=============================
-    private ReliableBroadcastService _reliableService;
+    private final ReliableBroadcastService _reliableService;
     private IIdentification _idService;
     private boolean _getToken;
     private boolean _wantToSendStuff;
@@ -48,13 +48,14 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     private boolean _isOn;
     //Private thread who read input buffer
     //=======================================
-    private TotalAtomicManager _totalAtomicManager;
+    private final TotalAtomicManager _totalAtomicManager;
 
     public TotalAtomicBroadcastService(ReliableBroadcastService serv) {
         _reliableService = serv;
         _inputBuffer = serv.getTotalBuffer();
         _outputBuffer = new SynchronizedBuffer();
         _ackBuffer = new SynchronizedBuffer();
+        _tokenBuffer = new SynchronizedBuffer();
         _getToken = false;
         _wantToSendStuff = false;
         _totalAtomicManager = new TotalAtomicManager(_ackBuffer, _inputBuffer,
@@ -64,13 +65,15 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     @Override
     public void initialize(MessageDispatcher mess, ICommunication com, MessageType t) {}
 
+    @Override
     public void broadcast(Object data) throws CommunicationException {
         //On s'assure que l'on a le token
         _wantToSendStuff = true;
         if (!_getToken) {
             //Si on ne l'as pas, on le demande et on l'attend.
+            System.out.println("TOKEN: on n'a pas le token, on envoie une requête.");
             _reliableService.broadcast(
-                    new TotalAtomicMessage(_idService.getMyIdentifier(), null, null,
+                    new TotalAtomicMessage(_idService.getMyIdentifier(), _idService.getMyIdentifier(), "",
                             TotalAtomicType.TOKEN_REQUEST));
             TotalAtomicMessage message;
             while (!_getToken) {
@@ -84,7 +87,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
 
         //On entre en SC: on envoie le message et on attend les accusés.
         _reliableService.broadcast(
-                new TotalAtomicMessage(_idService.getMyIdentifier(), null, data,
+                new TotalAtomicMessage(_idService.getMyIdentifier(), _idService.getMyIdentifier(), data,
                         TotalAtomicType.PAYLOAD));
         //On attend tous les accusés.
         int ack = 0;
@@ -104,6 +107,7 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
             if (_requests.get(id) > _token.get(id) && _getToken) {
                 //Quelqu'un attend le token, on met à jour notre case et on 
                 //l'envoie.
+                System.out.println("TOKEN: on passe le token à " + id);
                 ProcessIdentifier myId = _idService.getMyIdentifier();
                 _token.put(myId, _token.get(myId) + 1);
                 _reliableService.broadcast(
@@ -120,14 +124,18 @@ public class TotalAtomicBroadcastService extends Service implements IBroadcast {
     {
         _idService = idService;
     }
+    
+    @Override
     public Message synchDeliver() {
         return _outputBuffer.removeElement(true);
     }
 
+    @Override
     public Message asynchDeliver() {
         return _outputBuffer.removeElement(false);
     }
 
+    @Override
     public boolean availableMessage() {
         return _outputBuffer.available() > 0;
     }

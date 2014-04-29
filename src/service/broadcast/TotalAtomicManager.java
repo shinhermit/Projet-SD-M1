@@ -14,25 +14,24 @@ import message.Message;
 import message.TotalAtomicMessage;
 import message.TotalAtomicType;
 import service.IIdentification;
-import service.id.IdentificationService;
 
 /**
  *
  * @author ninjatrappeur
  */
 public class TotalAtomicManager extends Thread{
-    private SynchronizedBuffer<TotalAtomicMessage> _tokenRequestBuffer;
-    private SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
-    private SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
-    private SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _tokenRequestBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _ackBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _tokenBuffer;
+    private final SynchronizedBuffer<TotalAtomicMessage> _inputBuffer;
     private SynchronizedBuffer<TotalAtomicMessage> _outputBuffer;
-    private HashMap<ProcessIdentifier, Integer> _request;
+    private final HashMap<ProcessIdentifier, Integer> _request;
     private HashMap<ProcessIdentifier, Integer> _token;
-    private IIdentification _idServ;
-    private ReliableBroadcastService _reliableService;
+    private final IIdentification _idServ;
+    private final ReliableBroadcastService _reliableService;
     private boolean _getToken;
-    private boolean _usingToken;
-    private boolean _isOn;
+    private final boolean _usingToken;
+    private final boolean _isOn;
     
     public TotalAtomicManager (
             SynchronizedBuffer<TotalAtomicMessage> ack,
@@ -46,6 +45,7 @@ public class TotalAtomicManager extends Thread{
             IIdentification idServ) {
         _isOn = isOn;
         _tokenRequestBuffer = new SynchronizedBuffer();
+        _request = new HashMap();
         _ackBuffer = ack;
         _tokenBuffer = tokenBuffer;
         _token = token;
@@ -71,6 +71,7 @@ public class TotalAtomicManager extends Thread{
                     
                 //Si on reçoit le jeton, on le recopie et on réveille le service qui était en attente à l'aide du buffer de jeton.    
                 case TOKEN :
+                    System.out.println("TOKEN: token reçu de "+ message.getProcessIdSender());
                     if(message.getProcessIdReceiver().equals(_idServ.getMyIdentifier())) {
                         _token = (HashMap<ProcessIdentifier, Integer>) message.getData();
                         _getToken = true;
@@ -81,7 +82,12 @@ public class TotalAtomicManager extends Thread{
                 //Si on reçoit une requête de jeton, on regarde si on a le jeton et que l'on ne s'en sert pas.
                 //Si c'est le cas on l'envoie. Sinon on incrémente les demandes.
                 case TOKEN_REQUEST:
-                    _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
+                    System.out.println("TOKEN: Token request reçu de " + message.getProcessId());
+                    if(_request.containsKey(message.getProcessIdSender())) {
+                        _request.put(message.getProcessIdSender(), _request.get(message.getProcessIdSender()) + 1);
+                    } else {
+                        _request.put(message.getProcessIdSender(), 1);
+                    }
                     if(_getToken && !_usingToken) {
                         try{
                             _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(), message.getProcessIdSender(), _token, TotalAtomicType.TOKEN));
@@ -94,6 +100,7 @@ public class TotalAtomicManager extends Thread{
                     
                 //On fait passer l'acquittement au service (c'est lui qui se charge de les compter).    
                 case ACK:
+                    System.out.println("ACK: ACK reçu de "+ message.getProcessIdSender());
                     if(message.getProcessIdReceiver() == _idServ.getMyIdentifier())
                         _ackBuffer.addElement(message);
                     break;
@@ -108,13 +115,12 @@ public class TotalAtomicManager extends Thread{
     public TotalAtomicMessage fetchMessage()
     {
         Message mess = _inputBuffer.removeElement(true);
-        Object data = mess.getData();
            
-        if(! (data instanceof TotalAtomicMessage) )
+        if(! (mess instanceof TotalAtomicMessage) )
         {
             throw new IllegalStateException("TotalAtomicManager.fetchMessage: messages in total mode should be of type TotalAtomicMessage.\n\t found "+mess.getClass().getName());
         }
            
-        return (TotalAtomicMessage) data;
+        return (TotalAtomicMessage) mess;
         }
 }
