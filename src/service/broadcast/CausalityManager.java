@@ -154,6 +154,7 @@ public class CausalityManager extends Thread
             
             else
             {
+                System.err.println("CausalityManager::run : delivering the message");
                 _causalBuffer.addElement(stampMess.toMessage());
                 _updateWaitingList(stampMess.getProcessId());
             }
