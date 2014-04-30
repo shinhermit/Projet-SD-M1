@@ -67,8 +67,8 @@ public class TotalAtomicManager extends Thread {
 
                 //Si on reçoit le jeton, on le recopie et on réveille le service qui était en attente à l'aide du buffer de jeton.    
                 case TOKEN:
-                    System.out.println("TOKEN: token reçu de " + message.getProcessIdSender());
                     if (message.getProcessIdReceiver().equals(_idServ.getMyIdentifier())) {
+                        System.out.println("TOKEN: token reçu de " + message.getProcessIdSender());
                         _tokenBuffer.addElement(message);
                     }
                     break;
@@ -84,15 +84,7 @@ public class TotalAtomicManager extends Thread {
                     }
                     if (_broadcastService.getTokenState() && !_broadcastService.getTokenUsage()) {
                         try {
-                            HashMap<ProcessIdentifier, Integer> token;
-                            token = _broadcastService.getToken();
-                            ProcessIdentifier myId = _idServ.getMyIdentifier();
                             System.out.println("TOKEN: On envoie le token à " + message.getProcessIdSender());
-                            if (token.containsKey(myId)) {
-                                token.put(myId, token.get(myId) + 1);
-                            } else {
-                                token.put(myId, 1);
-                            }
                             _reliableService.broadcast(new TotalAtomicMessage(_idServ.getMyIdentifier(),
                                     message.getProcessIdSender(), _broadcastService.getToken(),
                                     TotalAtomicType.TOKEN));
